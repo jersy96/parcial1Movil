@@ -18,10 +18,10 @@
         />
 
     <EditText
-        android:id="@+id/login_user_name"
+        android:id="@+id/register_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="User name"
+        android:hint="Email"
         android:gravity="center"
         android:layout_marginTop="20dp"
         android:layout_marginLeft="40dp"
@@ -31,8 +31,24 @@
         android:textColor="@color/uninorteRed"
         />
 
+
     <EditText
-        android:id="@+id/login_password"
+        android:id="@+id/register_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Name"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/futura_medium"
+        android:textColor="@color/uninorteRed"
+        />
+
+
+    <EditText
+        android:id="@+id/register_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Password"
@@ -47,30 +63,16 @@
         />
 
     <Button
-        android:id="@+id/login_button"
+        android:id="@+id/register_button"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="Accept"
+        android:text="Register"
         android:layout_margin="40dp"
         android:fontFamily="@font/futura_medium"
         android:background="@color/uninorteRed"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         />
-
-    <TextView
-        android:id="@+id/register_link"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/register_link"
-        android:textSize="16dp"
-        android:textStyle="italic"
-        android:fontFamily="@font/futura_medium"
-        android:layout_margin="20dp"
-        android:textAlignment="center"
-        android:textColor="@color/uninorteRed"
-        />
-
 
 
     <ImageView

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Uninorte Mobile App</string>
     <string name="main_title">Uninorte Mobile App</string>
+    <string name="register_link"><u>register</u></string>
     <string name="web_site">www.uninorte.edu.co</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
