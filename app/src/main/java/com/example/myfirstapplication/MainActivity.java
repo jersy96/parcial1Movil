@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity
         if (INSTANCE == null) {
             synchronized (TrackUDatabaseManager.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context, TrackUDatabaseManager.class, "database-tracku")
+                    INSTANCE = Room.databaseBuilder(context, TrackUDatabaseManager.class, "local-database")
                             .allowMainThreadQueries()
                             .fallbackToDestructiveMigration()
                             .build();
@@ -279,10 +279,15 @@ public class MainActivity extends AppCompatActivity
     public void uploadLocallySavedPoints(){
         List<Point> pointList = MainActivity.INSTANCE.pointDao().getAllPoints();
         JSONArray jsonArray = pointsToJsonArray(pointList);
-
+        JSONObject json = new JSONObject();
+        try {
+            json.put("points", jsonArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         OkHttpClient client = new OkHttpClient();
         MediaType mediaType = MediaType.parse("application/json");
-        RequestBody body = RequestBody.create(mediaType, jsonArray.toString());
+        RequestBody body = RequestBody.create(mediaType, json.toString());
         Request request = new Request.Builder()
             .url("http://192.168.0.7:3000/points")
             .post(body)
