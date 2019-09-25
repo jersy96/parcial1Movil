@@ -9,13 +9,15 @@ public class Point {
     @PrimaryKey(autoGenerate = true)
     public int pointId;
 
-    @ColumnInfo(name="Latitude")
-    public double Latitude;
+    @ColumnInfo(name="userId")
+    public int userId;
+
+    @ColumnInfo(name="latitude")
+    public double latitude;
 
     @ColumnInfo(name="Longitude")
-    public double Longitude;
+    public double longitude;
 
     @ColumnInfo(name="Date")
-    public String Date;
-
+    public String date;
 }

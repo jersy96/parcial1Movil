@@ -47,6 +47,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
@@ -56,10 +59,19 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.io.Console;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GPSManagerCallerInterface , BroadcastManagerCallerInterface {
@@ -216,14 +228,8 @@ public class MainActivity extends AppCompatActivity
                 ((TextView)findViewById(R.id.latitude_text_view)).setText(location.getLatitude()+"");
                 ((TextView)findViewById(R.id.longitude_text_view)).setText(location.getLongitude()+"");
                 setMapCenter(location);
-                Point point = new Point();
-                SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-                Date date = new Date();
-                point.Date = formatter.format(date);
-                point.Latitude = location.getLatitude();
-                point.Longitude = location.getLongitude();
-                INSTANCE.pointDao().insertPoint(point);
-                INSTANCE.pointDao().getAllPoints();
+                savePointLocally(location.getLatitude(), location.getLongitude());
+                uploadLocallySavedPoints();
             }
         });
 
@@ -233,6 +239,76 @@ public class MainActivity extends AppCompatActivity
                         SocketManagementService.CLIENT_TO_SERVER_MESSAGE,
                         location.getLatitude()+" / "+location.getLongitude()+"\n");
             }
+    }
+
+    public String getCurrentDateAsString(){
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+        return formatter.format(date);
+    }
+
+    public void savePointLocally(double latitude, double longitude){
+        Point point = new Point();
+        point.date = getCurrentDateAsString();
+        point.latitude = latitude;
+        point.longitude = longitude;
+        MainActivity.INSTANCE.pointDao().insertPoint(point);
+    }
+
+    public JSONObject pointToJson(Point point){
+        try {
+            JSONObject json = new JSONObject();
+            json.put("user_id", 1);
+            json.put("latitude",point.latitude);
+            json.put("longitude",point.longitude);
+            json.put("time", point.date);
+            return json;
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    public JSONArray pointsToJsonArray(List<Point> points){
+        JSONArray jsonArray = new JSONArray();
+        for (Point point : points){
+            jsonArray.put(pointToJson(point));
+        }
+        return jsonArray;
+    }
+
+    public void uploadLocallySavedPoints(){
+        List<Point> pointList = MainActivity.INSTANCE.pointDao().getAllPoints();
+        JSONArray jsonArray = pointsToJsonArray(pointList);
+
+        OkHttpClient client = new OkHttpClient();
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(mediaType, jsonArray.toString());
+        Request request = new Request.Builder()
+            .url("http://192.168.0.7:3000/points")
+            .post(body)
+            .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                showToast("Ha ocurrido un error con la conexión");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if(response.code() == 200) {
+                    MainActivity.INSTANCE.pointDao().clearPoints();
+                    showToast("Posición actualizada con éxito");
+                }else{
+                    showToast("Ha ocurrido un error al actualizar tu posición");
+                }
+            }
+        });
+    }
+
+    public void showToast(final String message)
+    {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
