@@ -291,16 +291,16 @@ public class MainActivity extends AppCompatActivity
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                showToast("Ha ocurrido un error con la conexión");
+                showToast("Error de conexion");
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if(response.code() == 200) {
                     MainActivity.INSTANCE.pointDao().clearPoints();
-                    showToast("Posición actualizada con éxito");
+                    showToast("El punto fue subido exitosamente");
                 }else{
-                    showToast("Ha ocurrido un error al actualizar tu posición");
+                    showToast("Error al intentar subir el punto");
                 }
             }
         });
