@@ -55,6 +55,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
@@ -226,6 +227,7 @@ public class MainActivity extends AppCompatActivity
                 ((TextView)findViewById(R.id.latitude_text_view)).setText(location.getLatitude()+"");
                 ((TextView)findViewById(R.id.longitude_text_view)).setText(location.getLongitude()+"");
                 setMapCenter(location);
+                setMarkOnMap(location.getLatitude(), location.getLongitude());
                 savePointLocally(location.getLatitude(), location.getLongitude());
                 uploadLocallySavedPoints();
             }
@@ -318,6 +320,15 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void setMarkOnMap(double latitude, double longitude){
+        Marker marker = new Marker(map);
+        marker.setPosition(new GeoPoint(latitude, longitude));
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setIcon(this.getResources().getDrawable(R.drawable.ic_menu_camera, getTheme()));
+        marker.setTitle("Hola");
+        map.getOverlays().add(marker);
     }
 
     @Override
