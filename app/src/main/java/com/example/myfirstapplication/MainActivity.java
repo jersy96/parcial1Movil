@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity
     ArrayAdapter<String> adapter ;
     boolean serviceStarted=false;
     private Location currentLocation;
+    private ArrayList<Point> points;
 
     static TrackUDatabaseManager INSTANCE;
 
@@ -227,9 +228,9 @@ public class MainActivity extends AppCompatActivity
                 ((TextView)findViewById(R.id.latitude_text_view)).setText(location.getLatitude()+"");
                 ((TextView)findViewById(R.id.longitude_text_view)).setText(location.getLongitude()+"");
                 setMapCenter(location);
-                setMarkOnMap(location.getLatitude(), location.getLongitude());
                 savePointLocally(location.getLatitude(), location.getLongitude());
                 uploadLocallySavedPoints();
+                fetchPoints();
             }
         });
 
@@ -329,6 +330,60 @@ public class MainActivity extends AppCompatActivity
         marker.setIcon(this.getResources().getDrawable(R.drawable.ic_menu_camera, getTheme()));
         marker.setTitle("Hola");
         map.getOverlays().add(marker);
+    }
+
+    private Point pointFromJson(JSONObject json){
+        Point point = new Point();
+        try {
+            point.date = json.getString("time");
+            point.latitude = Double.parseDouble(json.getString("latitude"));
+            point.longitude = Double.parseDouble(json.getString("longitude"));
+            return point;
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    private void fetchPoints(){
+        points = null;
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+            .url("http://192.168.0.7:3000/points")
+            .get()
+            .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                showToast("Error de conexion");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if(response.code() == 200) {
+                    String r = response.body().string();
+                    try {
+                        JSONArray responsePoints = new JSONArray(r);
+                        points = new ArrayList<>();
+                        for (int i = 0; i<responsePoints.length(); i++){
+                            Point point = pointFromJson(responsePoints.getJSONObject(i));
+                            if (point != null){
+                                points.add(point);
+                            }
+                        }
+                        showToast(points.size()+" puntos fueron traidos exitosamente");
+
+                        for(Point point : points){
+                            setMarkOnMap(point.latitude, point.longitude);
+                        }
+                    } catch (JSONException e) {
+                        showToast("Error al procesar los puntos");
+                    }
+                }else{
+                    showToast("Error al intentar traer los puntos");
+                }
+            }
+        });
     }
 
     @Override
