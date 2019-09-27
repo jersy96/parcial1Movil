@@ -236,9 +236,11 @@ public class MainActivity extends AppCompatActivity
 
         if(serviceStarted)
             if(broadcastManagerForSocketIO!=null){
+                Intent intent = new Intent();
+                intent.putExtra("latitude", location.getLatitude());
+                intent.putExtra("longitude", location.getLongitude());
                 broadcastManagerForSocketIO.sendBroadcast(
-                        SocketManagementService.CLIENT_TO_SERVER_MESSAGE,
-                        location.getLatitude()+" / "+location.getLongitude()+"\n");
+                        SocketManagementService.CLIENT_TO_SERVER_MESSAGE, intent);
             }
     }
 
@@ -470,11 +472,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void MessageReceivedThroughBroadcastManager(final String channel,final String type, final String message) {
+    public void MessageReceivedThroughBroadcastManager(final String channel, final Intent intent) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listOfMessages.add(message);
+                listOfMessages.add(intent.getStringExtra("message"));
                 ((ListView)findViewById(R.id.messages_list_view)).setAdapter(adapter);
                 adapter.notifyDataSetChanged();
             }

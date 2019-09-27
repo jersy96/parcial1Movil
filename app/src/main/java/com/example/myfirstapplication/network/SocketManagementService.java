@@ -112,7 +112,9 @@ public class SocketManagementService extends IntentService implements ClientSock
         try {
 
             if(broadcastManager!=null){
-                broadcastManager.sendBroadcast( SERVER_TO_CLIENT_MESSAGE,message);
+                Intent intent = new Intent();
+                intent.putExtra("message", message);
+                broadcastManager.sendBroadcast( SERVER_TO_CLIENT_MESSAGE, intent);
             }
         }catch (Exception error){
 
@@ -125,10 +127,14 @@ public class SocketManagementService extends IntentService implements ClientSock
     }
 
     @Override
-    public void MessageReceivedThroughBroadcastManager(String channel, String type,String message) {
+    public void MessageReceivedThroughBroadcastManager(String channel, Intent intent) {
         try {
             if (clientSocketManager != null) {
+                String type = intent.getStringExtra("type");
                 if (type.equals(CLIENT_TO_SERVER_MESSAGE)) {
+                    String latitude = intent.getStringExtra("latitude");
+                    String longitude = intent.getStringExtra("longitude");
+                    String message = latitude+" / "+longitude+"\n";
                     clientSocketManager.sendMessage(message);
                 }
             }

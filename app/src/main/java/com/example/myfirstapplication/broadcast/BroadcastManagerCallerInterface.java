@@ -1,9 +1,11 @@
 package com.example.myfirstapplication.broadcast;
 
+import android.content.Intent;
+
 public interface BroadcastManagerCallerInterface {
 
     void MessageReceivedThroughBroadcastManager(
-            String channel, String type,String message);
+            String channel, Intent intent);
 
     void ErrorAtBroadcastManager(Exception error);
 }

@@ -40,20 +40,15 @@ public class BroadcastManager extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        String payload=intent.getExtras().getString("payload");
-        String type=intent.getExtras().getString("type");
-        caller.
-                MessageReceivedThroughBroadcastManager(
-                        this.channel,type,payload);
+        caller.MessageReceivedThroughBroadcastManager(
+                        this.channel, intent);
     }
 
-    public void sendBroadcast(String type,String message){
+    public void sendBroadcast(String type, Intent intent){
         try{
-            Intent intentToBesent=new Intent();
-            intentToBesent.setAction(channel);
-            intentToBesent.putExtra("payload",message);
-            intentToBesent.putExtra("type",type);
-            context.sendBroadcast(intentToBesent);
+            intent.setAction(channel);
+            intent.putExtra("type", type);
+            context.sendBroadcast(intent);
         }catch (Exception error){
             caller.ErrorAtBroadcastManager(error);
         }
