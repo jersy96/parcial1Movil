@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity
         }
         Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION);
-        intent.putExtra("url", "http://192.168.0.7:3000/points");
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/points");
         intent.putExtra("jsonString", json.toString());
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
     }
@@ -339,7 +339,7 @@ public class MainActivity extends AppCompatActivity
     private void fetchPoints(){
         Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX);
-        intent.putExtra("url", "http://192.168.0.7:3000/points");
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/points");
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 

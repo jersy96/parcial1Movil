@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.myfirstapplication.database.entities.Point;
+import com.example.myfirstapplication.network.HttpRequestsManagementService;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -67,7 +68,7 @@ public class SignUpActivity extends AppCompatActivity {
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType, userBody.toString());
         Request request = new Request.Builder()
-                .url("http://192.168.0.7:3000/users")
+                .url(HttpRequestsManagementService.BASE_URL+"/users")
                 .post(body)
                 .build();
 

@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.myfirstapplication.network.HttpRequestsManagementService;
+
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -69,7 +71,7 @@ public class LoginActivity extends Activity {
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType, userBody.toString());
         Request request = new Request.Builder()
-                .url("http://192.168.0.7:3000/login")
+                .url(HttpRequestsManagementService.BASE_URL+"/login")
                 .post(body)
                 .build();
 
