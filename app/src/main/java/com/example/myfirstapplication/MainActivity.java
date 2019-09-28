@@ -12,14 +12,11 @@ import com.example.myfirstapplication.broadcast.BroadcastManager;
 import com.example.myfirstapplication.broadcast.BroadcastManagerCallerInterface;
 import com.example.myfirstapplication.database.core.TrackUDatabaseManager;
 import com.example.myfirstapplication.database.entities.Point;
-import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.gps.GPSManager;
 import com.example.myfirstapplication.gps.GPSManagerCallerInterface;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
 import com.example.myfirstapplication.network.OnlineNotifierService;
 import com.example.myfirstapplication.network.SocketManagementService;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import android.preference.PreferenceManager;
 import android.view.View;
@@ -61,20 +58,10 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
-import java.io.Console;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GPSManagerCallerInterface , BroadcastManagerCallerInterface {
@@ -89,6 +76,8 @@ public class MainActivity extends AppCompatActivity
     boolean serviceStarted=false;
     private Location currentLocation;
     private ArrayList<Point> points;
+    TextView latitudeTextView;
+    TextView longitudeTextView;
 
     private static int DEFAULT_STATUS_CODE = -1;
     static TrackUDatabaseManager INSTANCE;
@@ -136,6 +125,8 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getDatabase(this);
+        latitudeTextView = ((TextView)findViewById(R.id.latitude_text_view));
+        longitudeTextView = ((TextView)findViewById(R.id.longitude_text_view));
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -234,8 +225,8 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ((TextView)findViewById(R.id.latitude_text_view)).setText(location.getLatitude()+"");
-                ((TextView)findViewById(R.id.longitude_text_view)).setText(location.getLongitude()+"");
+                latitudeTextView.setText(location.getLatitude()+"");
+                longitudeTextView.setText(location.getLongitude()+"");
                 setMapCenter(location);
                 savePointLocally(location.getLatitude(), location.getLongitude());
                 uploadLocallySavedPoints();
