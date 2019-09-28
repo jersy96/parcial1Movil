@@ -25,6 +25,7 @@ public class HttpRequestsManagementService extends IntentService {
     public static final int DEFAULT_REQUEST_ID = 0;
     public static final int REQUEST_ID_POINTS_INDEX = 1;
     public static final int REQUEST_ID_POINTS_CREATION = 2;
+    public static final int REQUEST_ID_NOTIFY_ONLINE = 3;
     public static final String ACTION_INIT_HTTP_REQUEST_MANAGER = "com.example.myfirstapplication.network.action.ACTION_INIT_HTTP_REQUEST_MANAGER";
     public static final String CHANNEL_HTTP_REQUESTS_SERVICE = "com.example.myfirstapplication.HTTP_REQUESTS_SERVICE_CHANNEL";
     public static final String MESSAGE_TYPE_POST_REQUEST = "POST_REQUEST";
@@ -41,10 +42,10 @@ public class HttpRequestsManagementService extends IntentService {
         return new Intent(context, HttpRequestsManagementService.class);
     }
 
-    public static void makeHttpRequest(Activity activity, String type, Intent intent){
+    public static void makeHttpRequest(Context context, String type, Intent intent){
         intent.setAction(HttpRequestsManagementService.ACTION_INIT_HTTP_REQUEST_MANAGER);
         intent.putExtra("type", type);
-        activity.startService(intent);
+        context.startService(intent);
     }
 
     public HttpRequestsManagementService() {

@@ -16,6 +16,7 @@ import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.gps.GPSManager;
 import com.example.myfirstapplication.gps.GPSManagerCallerInterface;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
+import com.example.myfirstapplication.network.OnlineNotifierService;
 import com.example.myfirstapplication.network.SocketManagementService;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -124,6 +125,10 @@ public class MainActivity extends AppCompatActivity
                         CHANNEL_HTTP_REQUESTS_SERVICE,this);
     }
 
+    private void initializeOnlineNotifierService(){
+        startService(new Intent(this, OnlineNotifierService.class));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -160,6 +165,7 @@ public class MainActivity extends AppCompatActivity
         initializeOSM();
         initializeBroadcastManagerForSocketIO();
         initializeBroadcastManagerForHttpRequests();
+        initializeOnlineNotifierService();
         adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, listOfMessages);
         // --------------------------------------
     }
@@ -518,6 +524,7 @@ public class MainActivity extends AppCompatActivity
         if(broadcastManagerForHttpRequests!=null){
             broadcastManagerForHttpRequests.unRegister();
         }
+        stopService(new Intent(this, OnlineNotifierService.class));
         super.onDestroy();
     }
 }
