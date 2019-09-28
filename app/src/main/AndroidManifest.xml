@@ -26,6 +26,9 @@
         <service
             android:name=".network.SocketManagementService"
             android:exported="false" />
+        <service
+            android:name=".network.HttpRequestsManagementService"
+            android:exported="false" />
     </application>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />

@@ -15,6 +15,7 @@ import com.example.myfirstapplication.database.entities.Point;
 import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.gps.GPSManager;
 import com.example.myfirstapplication.gps.GPSManagerCallerInterface;
+import com.example.myfirstapplication.network.HttpRequestsManagementService;
 import com.example.myfirstapplication.network.SocketManagementService;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -81,12 +82,14 @@ public class MainActivity extends AppCompatActivity
     private MapView map;
     private MyLocationNewOverlay mLocationOverlay;
     BroadcastManager broadcastManagerForSocketIO;
+    BroadcastManager broadcastManagerForHttpRequests;
     ArrayList<String> listOfMessages=new ArrayList<>();
     ArrayAdapter<String> adapter ;
     boolean serviceStarted=false;
     private Location currentLocation;
     private ArrayList<Point> points;
 
+    private static int DEFAULT_STATUS_CODE = -1;
     static TrackUDatabaseManager INSTANCE;
 
     static TrackUDatabaseManager getDatabase(final Context context) {
@@ -113,6 +116,22 @@ public class MainActivity extends AppCompatActivity
         broadcastManagerForSocketIO=new BroadcastManager(this,
                 SocketManagementService.
                         SOCKET_SERVICE_CHANNEL,this);
+    }
+
+    private Intent createIntentForHttpRequest(){
+        return new Intent(getApplicationContext(), HttpRequestsManagementService.class);
+    }
+
+    private void makeHttpRequest(String type, Intent intent){
+        intent.setAction(HttpRequestsManagementService.ACTION_INIT_HTTP_REQUEST_MANAGER);
+        intent.putExtra("type", type);
+        startService(intent);
+    }
+
+    private void initializeBroadcastManagerForHttpRequests(){
+        broadcastManagerForHttpRequests=new BroadcastManager(this,
+                HttpRequestsManagementService.
+                        CHANNEL_HTTP_REQUESTS_SERVICE,this);
     }
 
     @Override
@@ -150,6 +169,7 @@ public class MainActivity extends AppCompatActivity
         initializeGPSManager();
         initializeOSM();
         initializeBroadcastManagerForSocketIO();
+        initializeBroadcastManagerForHttpRequests();
         adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, listOfMessages);
         // --------------------------------------
     }
@@ -230,7 +250,6 @@ public class MainActivity extends AppCompatActivity
                 setMapCenter(location);
                 savePointLocally(location.getLatitude(), location.getLongitude());
                 uploadLocallySavedPoints();
-                fetchPoints();
             }
         });
 
@@ -288,30 +307,11 @@ public class MainActivity extends AppCompatActivity
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        OkHttpClient client = new OkHttpClient();
-        MediaType mediaType = MediaType.parse("application/json");
-        RequestBody body = RequestBody.create(mediaType, json.toString());
-        Request request = new Request.Builder()
-            .url("http://192.168.0.7:3000/points")
-            .post(body)
-            .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                showToast("Error de conexion");
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if(response.code() == 200) {
-                    MainActivity.INSTANCE.pointDao().clearPoints();
-                    showToast("El punto fue subido exitosamente");
-                }else{
-                    showToast("Error al intentar subir el punto");
-                }
-            }
-        });
+        Intent intent = createIntentForHttpRequest();
+        intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION);
+        intent.putExtra("url", "http://192.168.0.7:3000/points");
+        intent.putExtra("jsonString", json.toString());
+        makeHttpRequest(HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
     }
 
     public void showToast(final String message)
@@ -347,45 +347,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void fetchPoints(){
-        points = null;
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-            .url("http://192.168.0.7:3000/points")
-            .get()
-            .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                showToast("Error de conexion");
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if(response.code() == 200) {
-                    String r = response.body().string();
-                    try {
-                        JSONArray responsePoints = new JSONArray(r);
-                        points = new ArrayList<>();
-                        for (int i = 0; i<responsePoints.length(); i++){
-                            Point point = pointFromJson(responsePoints.getJSONObject(i));
-                            if (point != null){
-                                points.add(point);
-                            }
-                        }
-                        showToast(points.size()+" puntos fueron traidos exitosamente");
-
-                        for(Point point : points){
-                            setMarkOnMap(point.latitude, point.longitude);
-                        }
-                    } catch (JSONException e) {
-                        showToast("Error al procesar los puntos");
-                    }
-                }else{
-                    showToast("Error al intentar traer los puntos");
-                }
-            }
-        });
+        Intent intent = createIntentForHttpRequest();
+        intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX);
+        intent.putExtra("url", "http://192.168.0.7:3000/points");
+        makeHttpRequest(HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 
     @Override
@@ -472,7 +437,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void MessageReceivedThroughBroadcastManager(final String channel, final Intent intent) {
+    public void MessageReceivedThroughBroadcastManager(String channel, Intent intent) {
+        switch (channel){
+            case SocketManagementService.SOCKET_SERVICE_CHANNEL:
+                processSocketServiceMessage(intent);
+                break;
+            case HttpRequestsManagementService.CHANNEL_HTTP_REQUESTS_SERVICE:
+                processHttpRequestsServiceMessage(intent);
+                break;
+        }
+    }
+
+    private void processSocketServiceMessage(final Intent intent){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -481,7 +457,69 @@ public class MainActivity extends AppCompatActivity
                 adapter.notifyDataSetChanged();
             }
         });
+    }
 
+    private void processHttpRequestsServiceMessage(Intent intent){
+        switch(intent.getStringExtra("type")){
+            case HttpRequestsManagementService.BROADCAST_TYPE_CONNECTION_ERROR:
+                processHttpRequestConnectionError(intent);
+                break;
+            case HttpRequestsManagementService.BROADCAST_TYPE_REQUEST_RESPONSE:
+                processHttpRequestRequestResponse(intent);
+                break;
+        }
+    }
+
+    private void processHttpRequestConnectionError(Intent intent){
+        showToast(intent.getStringExtra("message"));
+    }
+
+    private void processHttpRequestRequestResponse(Intent intent){
+        int requestId = intent.getIntExtra("requestId", HttpRequestsManagementService.DEFAULT_REQUEST_ID);
+        int code = intent.getIntExtra("status_code", DEFAULT_STATUS_CODE);
+        String responseBody = intent.getStringExtra("response_body");
+        switch (requestId){
+            case HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX:
+                processPointsIndex(code, responseBody);
+                break;
+            case HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION:
+                processPointsCreation(code, responseBody);
+                break;
+        }
+    };
+
+    private void processPointsIndex(int code, String responseBody){
+        if(code == 200) {
+            try {
+                JSONArray responsePoints = new JSONArray(responseBody);
+                points = new ArrayList<>();
+                for (int i = 0; i<responsePoints.length(); i++){
+                    Point point = pointFromJson(responsePoints.getJSONObject(i));
+                    if (point != null){
+                        points.add(point);
+                    }
+                }
+                showToast(points.size()+" puntos fueron traidos exitosamente");
+                map.getOverlays().clear();
+                for(Point point : points){
+                    setMarkOnMap(point.latitude, point.longitude);
+                }
+            } catch (JSONException e) {
+                showToast("Error al procesar los puntos");
+            }
+        }else{
+            showToast("Error al intentar traer los puntos");
+        }
+    }
+
+    private void processPointsCreation(int code, String responseBody){
+        if(code == 200) {
+            MainActivity.INSTANCE.pointDao().clearPoints();
+            showToast("El punto fue subido exitosamente");
+            fetchPoints();
+        }else{
+            showToast("Error al intentar subir el punto");
+        }
     }
 
     @Override
@@ -493,6 +531,9 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         if(broadcastManagerForSocketIO!=null){
             broadcastManagerForSocketIO.unRegister();
+        }
+        if(broadcastManagerForHttpRequests!=null){
+            broadcastManagerForHttpRequests.unRegister();
         }
         super.onDestroy();
     }
