@@ -9,20 +9,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Real-time location"
-            android:fontFamily="@font/futurafontfamily"
-            android:textSize="16sp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="65dp"
-            android:layout_marginRight="10dp"
-            android:textStyle="bold"
 
-            />
+    <TextView
+        android:id="@+id/online_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="65dp"
+        android:layout_marginRight="10dp"
+        android:textAlignment="textEnd"
+        android:fontFamily="@font/futurafontfamily"
+        android:text="Online"
+        android:textSize="16sp"
 
-        <View
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:fontFamily="@font/futurafontfamily"
+        android:text="Real-time location"
+        android:textSize="16sp"
+        android:textStyle="bold"
+
+        />
+
+    <View
             android:layout_width="match_parent"
             android:layout_height="0.5dp"
             android:background="@color/uninorteRed"
@@ -52,6 +66,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
