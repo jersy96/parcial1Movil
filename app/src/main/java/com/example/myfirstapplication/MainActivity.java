@@ -230,13 +230,7 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                latitudeTextView.setText(location.getLatitude()+"");
-                longitudeTextView.setText(location.getLongitude()+"");
-                setMapCenter(location);
-                savePointLocally(location.getLatitude(), location.getLongitude());
-                if (online){
-                    uploadLocallySavedPoints();
-                }
+                processLocationUpdate();
             }
         });
 
@@ -248,6 +242,19 @@ public class MainActivity extends AppCompatActivity
                 broadcastManagerForSocketIO.sendBroadcast(
                         SocketManagementService.CLIENT_TO_SERVER_MESSAGE, intent);
             }
+    }
+
+    private void processLocationUpdate(){
+        double latitude = currentLocation.getLatitude();
+        double longitude = currentLocation.getLongitude();
+        latitudeTextView.setText(latitude+"");
+        longitudeTextView.setText(longitude+"");
+        setMapCenter(currentLocation);
+        setMarkOnMap(latitude, longitude);
+        savePointLocally(latitude, longitude);
+        if (online){
+            uploadLocallySavedPoints();
+        }
     }
 
     public String getCurrentDateAsString(){
