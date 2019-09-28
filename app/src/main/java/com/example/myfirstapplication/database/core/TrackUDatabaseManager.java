@@ -13,4 +13,4 @@ import com.example.myfirstapplication.database.entities.User;
 public abstract class TrackUDatabaseManager extends RoomDatabase {
     public abstract UserDao userDao();
     public abstract PointDao pointDao();
-}
+    }

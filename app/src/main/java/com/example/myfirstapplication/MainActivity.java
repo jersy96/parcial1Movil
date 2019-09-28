@@ -20,6 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -88,9 +89,13 @@ public class MainActivity extends AppCompatActivity
 
     static TrackUDatabaseManager INSTANCE;
 
+
     static TrackUDatabaseManager getDatabase(final Context context) {
+        Log.i("cule", "que que");
         if (INSTANCE == null) {
+            Log.i("cule", "que que 2");
             synchronized (TrackUDatabaseManager.class) {
+                Log.i("cule", "que que 3");
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context, TrackUDatabaseManager.class, "local-database")
                             .allowMainThreadQueries()
@@ -117,6 +122,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("cule", "on create");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

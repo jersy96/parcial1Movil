@@ -12,10 +12,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.myfirstapplication.database.entities.User;
+
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.Call;
@@ -77,6 +80,8 @@ public class LoginActivity extends Activity {
             @Override
             public void onFailure(Call call, IOException e) {
                 showToast("Ha ocurrido un error con la conexión");
+                List<User> users = MainActivity.INSTANCE.userDao().getUserByEmail(user.get("email"));
+                Log.i("cule", users.get(0).toString());
             }
 
             @Override

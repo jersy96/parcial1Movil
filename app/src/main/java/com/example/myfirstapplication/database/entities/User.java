@@ -13,6 +13,9 @@ public class User {
     @ColumnInfo(name="email")
     public String email;
 
-    @ColumnInfo(name="password_hash")
-    public String passwordHash;
+    @ColumnInfo(name="name")
+    public String name;
+
+    @ColumnInfo(name="password")
+    public String password;
 }
