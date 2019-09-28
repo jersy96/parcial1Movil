@@ -57,6 +57,7 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<Point> points;
     TextView latitudeTextView;
     TextView longitudeTextView;
+    TextView onlineTextView;
 
     private static int DEFAULT_STATUS_CODE = -1;
     static TrackUDatabaseManager INSTANCE;
@@ -128,6 +130,8 @@ public class MainActivity extends AppCompatActivity
         getDatabase(this);
         latitudeTextView = ((TextView)findViewById(R.id.latitude_text_view));
         longitudeTextView = ((TextView)findViewById(R.id.longitude_text_view));
+        onlineTextView = ((TextView)findViewById(R.id.online_text_view));
+        onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_on, 0, 0, 0);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -456,7 +460,9 @@ public class MainActivity extends AppCompatActivity
     private void processHttpRequestConnectionError(Intent intent){
         int requestId = intent.getIntExtra("requestId", HttpRequestsManagementService.DEFAULT_REQUEST_ID);
         if (requestId == HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE){
-          this.online = false;
+            onlineTextView.setText("Offline");
+            onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_off, 0, 0, 0);
+            this.online = false;
         }else{
             showToast(intent.getStringExtra("message"));
         }
@@ -517,6 +523,8 @@ public class MainActivity extends AppCompatActivity
         boolean previousOnlineValue = online;
         this.online = code == 200;
         if(online && !previousOnlineValue){
+            onlineTextView.setText("Online");
+            onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_on, 0, 0, 0);
             uploadLocallySavedPoints();
         }
     }
