@@ -12,6 +12,7 @@ import com.example.myfirstapplication.broadcast.BroadcastManager;
 import com.example.myfirstapplication.broadcast.BroadcastManagerCallerInterface;
 import com.example.myfirstapplication.database.core.TrackUDatabaseManager;
 import com.example.myfirstapplication.database.entities.Point;
+import com.example.myfirstapplication.database.services.LocalDatabaseManagerService;
 import com.example.myfirstapplication.gps.GPSManager;
 import com.example.myfirstapplication.gps.GPSManagerCallerInterface;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
@@ -257,39 +258,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public String getCurrentDateAsString(){
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date();
-        return formatter.format(date);
-    }
-
     public void savePointLocally(double latitude, double longitude){
-        Point point = new Point();
-        point.date = getCurrentDateAsString();
-        point.latitude = latitude;
-        point.longitude = longitude;
-        MainActivity.INSTANCE.pointDao().insertPoint(point);
-    }
-
-    public JSONObject pointToJson(Point point){
-        try {
-            JSONObject json = new JSONObject();
-            json.put("user_id", 1);
-            json.put("latitude",point.latitude);
-            json.put("longitude",point.longitude);
-            json.put("time", point.date);
-            return json;
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
-    public JSONArray pointsToJsonArray(List<Point> points){
-        JSONArray jsonArray = new JSONArray();
-        for (Point point : points){
-            jsonArray.put(pointToJson(point));
-        }
-        return jsonArray;
+        LocalDatabaseManagerService.startActionInsertPoint(this, latitude, longitude);
     }
 
     public void uploadLocallySavedPoints(){
