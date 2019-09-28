@@ -118,16 +118,6 @@ public class MainActivity extends AppCompatActivity
                         SOCKET_SERVICE_CHANNEL,this);
     }
 
-    private Intent createIntentForHttpRequest(){
-        return new Intent(getApplicationContext(), HttpRequestsManagementService.class);
-    }
-
-    private void makeHttpRequest(String type, Intent intent){
-        intent.setAction(HttpRequestsManagementService.ACTION_INIT_HTTP_REQUEST_MANAGER);
-        intent.putExtra("type", type);
-        startService(intent);
-    }
-
     private void initializeBroadcastManagerForHttpRequests(){
         broadcastManagerForHttpRequests=new BroadcastManager(this,
                 HttpRequestsManagementService.
@@ -307,11 +297,11 @@ public class MainActivity extends AppCompatActivity
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Intent intent = createIntentForHttpRequest();
+        Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION);
         intent.putExtra("url", "http://192.168.0.7:3000/points");
         intent.putExtra("jsonString", json.toString());
-        makeHttpRequest(HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
+        HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
     }
 
     public void showToast(final String message)
@@ -347,10 +337,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void fetchPoints(){
-        Intent intent = createIntentForHttpRequest();
+        Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX);
         intent.putExtra("url", "http://192.168.0.7:3000/points");
-        makeHttpRequest(HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
+        HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 
     @Override

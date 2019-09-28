@@ -1,6 +1,8 @@
 package com.example.myfirstapplication.network;
 
+import android.app.Activity;
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
@@ -32,6 +34,16 @@ public class HttpRequestsManagementService extends IntentService {
 
     String url;
     private int requestId;
+
+    public static Intent createIntentForHttpRequest(Context context){
+        return new Intent(context, HttpRequestsManagementService.class);
+    }
+
+    public static void makeHttpRequest(Activity activity, String type, Intent intent){
+        intent.setAction(HttpRequestsManagementService.ACTION_INIT_HTTP_REQUEST_MANAGER);
+        intent.putExtra("type", type);
+        activity.startService(intent);
+    }
 
     public HttpRequestsManagementService() {
         super("HttpRequestsManagementService");
