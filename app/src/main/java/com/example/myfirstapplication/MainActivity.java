@@ -10,7 +10,7 @@ import android.os.Bundle;
 
 import com.example.myfirstapplication.broadcast.BroadcastManager;
 import com.example.myfirstapplication.broadcast.BroadcastManagerCallerInterface;
-import com.example.myfirstapplication.database.core.TrackUDatabaseManager;
+import com.example.myfirstapplication.database.core.DatabaseManager;
 import com.example.myfirstapplication.database.entities.Point;
 import com.example.myfirstapplication.gps.GPSManager;
 import com.example.myfirstapplication.gps.GPSManagerCallerInterface;
@@ -57,7 +57,6 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
-import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -83,13 +82,13 @@ public class MainActivity extends AppCompatActivity
     TextView onlineTextView;
 
     private static int DEFAULT_STATUS_CODE = -1;
-    static TrackUDatabaseManager INSTANCE;
+    static DatabaseManager INSTANCE;
 
-    static TrackUDatabaseManager getDatabase(final Context context) {
+    static DatabaseManager getDatabase(final Context context) {
         if (INSTANCE == null) {
-            synchronized (TrackUDatabaseManager.class) {
+            synchronized (DatabaseManager.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context, TrackUDatabaseManager.class, "local-database")
+                    INSTANCE = Room.databaseBuilder(context, DatabaseManager.class, "local-database")
                             .allowMainThreadQueries()
                             .fallbackToDestructiveMigration()
                             .build();

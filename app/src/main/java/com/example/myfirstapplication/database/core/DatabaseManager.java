@@ -10,7 +10,7 @@ import com.example.myfirstapplication.database.entities.Point;
 import com.example.myfirstapplication.database.entities.User;
 
 @Database(entities = {User.class, Point.class},version = 1)
-public abstract class TrackUDatabaseManager extends RoomDatabase {
+public abstract class DatabaseManager extends RoomDatabase {
     public abstract UserDao userDao();
     public abstract PointDao pointDao();
 }
