@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity
     ArrayList<String> listOfMessages=new ArrayList<>();
     ArrayAdapter<String> adapter ;
     boolean serviceStarted=false;
+    boolean online=true;
     private Location currentLocation;
     private ArrayList<Point> points;
     TextView latitudeTextView;
@@ -229,7 +230,9 @@ public class MainActivity extends AppCompatActivity
                 longitudeTextView.setText(location.getLongitude()+"");
                 setMapCenter(location);
                 savePointLocally(location.getLatitude(), location.getLongitude());
-                uploadLocallySavedPoints();
+                if (online){
+                    uploadLocallySavedPoints();
+                }
             }
         });
 
@@ -451,7 +454,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void processHttpRequestConnectionError(Intent intent){
-        showToast(intent.getStringExtra("message"));
+        int requestId = intent.getIntExtra("requestId", HttpRequestsManagementService.DEFAULT_REQUEST_ID);
+        if (requestId == HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE){
+          this.online = false;
+        }else{
+            showToast(intent.getStringExtra("message"));
+        }
     }
 
     private void processHttpRequestRequestResponse(Intent intent){
@@ -464,6 +472,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             case HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION:
                 processPointsCreation(code, responseBody);
+                break;
+            case HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE:
+                processOnlineRequestResponse(code, responseBody);
                 break;
         }
     };
@@ -499,6 +510,14 @@ public class MainActivity extends AppCompatActivity
             fetchPoints();
         }else{
             showToast("Error al intentar subir el punto");
+        }
+    }
+
+    private void processOnlineRequestResponse(int code, String responseBody){
+        boolean previousOnlineValue = online;
+        this.online = code == 200;
+        if(online && !previousOnlineValue){
+            uploadLocallySavedPoints();
         }
     }
 
