@@ -9,7 +9,7 @@ import com.example.myfirstapplication.database.daos.UserDao;
 import com.example.myfirstapplication.database.entities.Point;
 import com.example.myfirstapplication.database.entities.User;
 
-@Database(entities = {User.class, Point.class},version = 1)
+@Database(entities = {User.class, Point.class},version = 2)
 public abstract class DatabaseManager extends RoomDatabase {
     public abstract UserDao userDao();
     public abstract PointDao pointDao();
