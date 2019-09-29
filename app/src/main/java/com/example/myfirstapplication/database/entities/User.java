@@ -10,6 +10,9 @@ public class User {
     @PrimaryKey
     public int userId;
 
+    @ColumnInfo(name="name")
+    public String name;
+
     @ColumnInfo(name="email")
     public String email;
 

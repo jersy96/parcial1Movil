@@ -5,22 +5,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.myfirstapplication.database.entities.Point;
+import com.example.myfirstapplication.database.core.DatabaseManager;
+import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import okhttp3.Call;
@@ -32,11 +30,13 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class SignUpActivity extends AppCompatActivity {
+    private DatabaseManager dbInstance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        dbInstance = MainActivity.getDatabase(this);
 
         final Button button = findViewById(R.id.register_button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -55,15 +55,14 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
-    public void createUser(Map<String, String> user){
+    public void createUser(final Map<String, String> userParams){
         View view = this.getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
 
-        Log.i("cule", user.toString());
-        JSONObject userBody= new JSONObject(user);
+        JSONObject userBody= new JSONObject(userParams);
         OkHttpClient client = new OkHttpClient();
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType, userBody.toString());
@@ -82,8 +81,15 @@ public class SignUpActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) throws IOException {
 
                 if(response.code() == 200) {
-                    Log.i("culetagmakia", response.body().toString());
                     showToast("Usuario creado con éxito, ingrese con su correo y contraseña");
+
+                    User user = new User();
+                    user.name = userParams.get("name");
+                    user.email = userParams.get("email");
+                    user.passwordHash = userParams.get("password");
+
+                    dbInstance.userDao().insertUser(user);
+
                     Intent intetToBecalled=new
                             Intent(getApplicationContext(),
                             LoginActivity.class);
