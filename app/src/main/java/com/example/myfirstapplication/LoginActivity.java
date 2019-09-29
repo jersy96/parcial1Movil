@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -12,12 +11,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.myfirstapplication.database.core.DatabaseManager;
+import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
 
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.Call;
@@ -29,11 +31,14 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class LoginActivity extends Activity {
+    private DatabaseManager dbInstance;
     public static final String EXTRA_MESSAGE = "com.example.myfirstapplication.MESSAGE";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity_layout);
+        dbInstance = MainActivity.getDatabase(this);
         ((Button)findViewById(R.id.login_button)).
                 setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,15 +63,14 @@ public class LoginActivity extends Activity {
         });
     }
 
-    public void loginUser(final Map<String, String> user){
+    public void loginUser(final Map<String, String> userParams){
         View view = this.getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
 
-        Log.i("cule", user.toString());
-        JSONObject userBody= new JSONObject(user);
+        JSONObject userBody= new JSONObject(userParams);
         OkHttpClient client = new OkHttpClient();
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType, userBody.toString());
@@ -78,27 +82,24 @@ public class LoginActivity extends Activity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                showToast("Ha ocurrido un error con la conexión");
+                boolean validCredentials = false;
+                String failureMessage = "Ha ocurrido un error con la conexión";
+
+                List<User> users = dbInstance.userDao().getUserByEmail(userParams.get("email"));
+                if (!users.isEmpty()){
+                    User user = users.get(0);
+                    validCredentials = user.passwordHash.equals(userParams.get("password"));
+                    if (!validCredentials){
+                        failureMessage = "Credenciales invalidas";
+                    }
+                }
+
+                processLoginAttempt(validCredentials, userParams, failureMessage);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-
-                if(response.code() == 200) {
-                    Log.i("culetagmakia", response.body().toString());
-                    showToast("Ingreso exitoso");
-
-                    Intent intetToBecalled=new
-                            Intent(getApplicationContext(),
-                            MainActivity.class);
-                    intetToBecalled.putExtra("user_name",
-                            user.get("email"));
-                    intetToBecalled.putExtra("user_password",
-                            user.get("password"));
-                    startActivity(intetToBecalled);
-                }else{
-                    showToast("Ha ocurrido un error al ingresar usuario");
-                }
+                processLoginAttempt(response.code() == 200, userParams, "Credenciales invalidas");
             }
         });
     }
@@ -114,4 +115,20 @@ public class LoginActivity extends Activity {
         });
     }
 
+    private void processLoginAttempt(boolean success, Map<String, String> userParams, String failureMessage){
+        if(success) {
+            showToast("Ingreso exitoso");
+
+            Intent intetToBeCalled=new
+                    Intent(getApplicationContext(),
+                    MainActivity.class);
+            intetToBeCalled.putExtra("user_name",
+                    userParams.get("email"));
+            intetToBeCalled.putExtra("user_password",
+                    userParams.get("password"));
+            startActivity(intetToBeCalled);
+        }else{
+            showToast(failureMessage);
+        }
+    }
 }
