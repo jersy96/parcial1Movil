@@ -1,10 +1,13 @@
 package com.example.myfirstapplication;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.os.Bundle;
 
@@ -19,6 +22,7 @@ import com.example.myfirstapplication.network.OnlineNotifierService;
 import com.example.myfirstapplication.network.SocketManagementService;
 
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -36,13 +40,17 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.DialogFragment;
 import androidx.room.Room;
 
 import android.view.Menu;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,11 +68,12 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, GPSManagerCallerInterface , BroadcastManagerCallerInterface {
+        implements NavigationView.OnNavigationItemSelectedListener, GPSManagerCallerInterface , BroadcastManagerCallerInterface, AdapterView.OnItemSelectedListener {
 
     GPSManager gpsManager;
     private MapView map;
@@ -79,7 +88,11 @@ public class MainActivity extends AppCompatActivity
     TextView latitudeTextView;
     TextView longitudeTextView;
     TextView onlineTextView;
+    TextView initialDateTextView;
+    TextView finalDateTextView;
     String current_user_name;
+    private DatePickerDialog.OnDateSetListener mDateSetListenerInitialDate;
+    private DatePickerDialog.OnDateSetListener mDateSetListenerFinalDate;
 
     private static int DEFAULT_STATUS_CODE = -1;
     static DatabaseManager INSTANCE;
@@ -127,10 +140,26 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getDatabase(this);
+        Spinner spinner = (Spinner) findViewById(R.id.users_spinner);
+        spinner.setOnItemSelectedListener(this);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayList<String> users = new ArrayList<String>(){{
+            add("Boris Brejcha");
+            add("Hernan Cattaneo");
+            add("Amelie Lens");
+            add("Charlotte de witte");
+        }};
+        ArrayAdapter<String> adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, users);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
         latitudeTextView = ((TextView)findViewById(R.id.latitude_text_view));
         longitudeTextView = ((TextView)findViewById(R.id.longitude_text_view));
         onlineTextView = ((TextView)findViewById(R.id.online_text_view));
         onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_on, 0, 0, 0);
+        initialDateTextView = ((TextView)findViewById(R.id.initial_date_text_view));
+        finalDateTextView = ((TextView)findViewById(R.id.final_date_text_view));
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -156,6 +185,83 @@ public class MainActivity extends AppCompatActivity
                 serviceStarted=true;
             }
         });
+
+
+        ((Button)findViewById(R.id.clear_filter_button)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        ((Button)findViewById(R.id.search_button)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        ((Button)findViewById(R.id.initial_date_button)).
+                setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Calendar cal = Calendar.getInstance();
+                        int year = cal.get(Calendar.YEAR);
+                        int month = cal.get(Calendar.MONTH);
+                        int day = cal.get(Calendar.DAY_OF_MONTH);
+
+                        DatePickerDialog dialog = new DatePickerDialog(
+                                MainActivity.this,
+                                android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                mDateSetListenerInitialDate,
+                                year,month,day);
+                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                        dialog.show();
+                    }
+
+        });
+
+        ((Button)findViewById(R.id.final_date_button)).
+                setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Calendar cal = Calendar.getInstance();
+                        int year = cal.get(Calendar.YEAR);
+                        int month = cal.get(Calendar.MONTH);
+                        int day = cal.get(Calendar.DAY_OF_MONTH);
+
+                        DatePickerDialog dialog = new DatePickerDialog(
+                                MainActivity.this,
+                                android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                mDateSetListenerFinalDate,
+                                year,month,day);
+                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                        dialog.show();
+                    }
+                });
+
+        mDateSetListenerInitialDate = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                month = month + 1;
+                Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
+
+                String date = month + "/" + day + "/" + year;
+                initialDateTextView.setText(date);
+            }
+        };
+
+        mDateSetListenerFinalDate = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                month = month + 1;
+                Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
+
+                String date = month + "/" + day + "/" + year;
+                finalDateTextView.setText(date);
+            }
+        };
+
         initializeGPSManager();
         initializeOSM();
         initializeBroadcastManagerForSocketIO();
@@ -173,6 +279,18 @@ public class MainActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
+    }
+
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view,
+                               int pos, long id) {
+        // An item was selected. You can retrieve the selected item using
+        // parent.getItemAtPosition(pos)
+    }
+
+    public void onNothingSelected(AdapterView<?> parent) {
+        // Another interface callback
     }
 
     @Override
@@ -435,14 +553,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void processSocketServiceMessage(final Intent intent){
-        runOnUiThread(new Runnable() {
+        /*runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 listOfMessages.add(intent.getStringExtra("message"));
                 ((ListView)findViewById(R.id.messages_list_view)).setAdapter(adapter);
                 adapter.notifyDataSetChanged();
             }
-        });
+        });*/
     }
 
     private void processHttpRequestsServiceMessage(Intent intent){
