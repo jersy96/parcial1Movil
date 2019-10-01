@@ -1,9 +1,11 @@
 package com.example.myfirstapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -44,7 +46,8 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String messageText = messageArea.getText().toString();
-
+                addMessageBox(messageText, 1);
+                addMessageBox(messageText, 2);
                 if(!messageText.equals("")){
                     Map<String, String> map = new HashMap<String, String>();
                     map.put("message", messageText);
@@ -94,22 +97,36 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void addMessageBox(String message, int type){
-        TextView textView = new TextView(ChatActivity.this);
+        /*TextView textView = new TextView(ChatActivity.this);
         textView.setText(message);
 
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp2.weight = 7.0f;
-
+        */
+        View view;
         if(type == 1) {
-            lp2.gravity = Gravity.LEFT;
-            textView.setBackgroundResource(R.drawable.bubble_in);
+            //lp2.gravity = Gravity.LEFT;
+            //textView.setBackgroundResource(R.drawable.bubble_in);
+            view = LayoutInflater.from(this).inflate(R.layout.item_message_sended,null);
+            TextView usernameMessage = (TextView) view.findViewById(R.id.text_message_name);
+            TextView bodyMessage = (TextView) view.findViewById(R.id.text_message_body);
+            //TextView timeMessage = (TextView) view1.findViewById(R.id.text_message_time);
+            usernameMessage.setText("Javier");
+            bodyMessage.setText(message);
         }
         else{
-            lp2.gravity = Gravity.RIGHT;
-            textView.setBackgroundResource(R.drawable.bubble_out);
+            //lp2.gravity = Gravity.RIGHT;
+            //textView.setBackgroundResource(R.drawable.bubble_out);
+            view = LayoutInflater.from(this).inflate(R.layout.item_message_received,null);
+            TextView usernameMessage = (TextView) view.findViewById(R.id.text_message_name);
+            TextView bodyMessage = (TextView) view.findViewById(R.id.text_message_body);
+            //TextView timeMessage = (TextView) view1.findViewById(R.id.text_message_time);
+            usernameMessage.setText("Abraham");
+            bodyMessage.setText(message);
         }
-        textView.setLayoutParams(lp2);
-        layout.addView(textView);
+        //textView.setLayoutParams(lp2);
+        //layout.addView(textView);
+        layout.addView(view);
         scrollView.fullScroll(View.FOCUS_DOWN);
     }
 }
