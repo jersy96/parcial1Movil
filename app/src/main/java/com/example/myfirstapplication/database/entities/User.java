@@ -18,4 +18,7 @@ public class User {
 
     @ColumnInfo(name="password_hash")
     public String passwordHash;
+
+    @ColumnInfo(name="externalId")
+    public int externalId;
 }

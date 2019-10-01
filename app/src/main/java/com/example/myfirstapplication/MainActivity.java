@@ -15,6 +15,7 @@ import com.example.myfirstapplication.broadcast.BroadcastManager;
 import com.example.myfirstapplication.broadcast.BroadcastManagerCallerInterface;
 import com.example.myfirstapplication.database.core.DatabaseManager;
 import com.example.myfirstapplication.database.entities.Point;
+import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.gps.GPSManager;
 import com.example.myfirstapplication.gps.GPSManagerCallerInterface;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
@@ -40,7 +41,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.DialogFragment;
 import androidx.room.Room;
 
 import android.view.Menu;
@@ -49,7 +49,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -75,6 +74,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GPSManagerCallerInterface , BroadcastManagerCallerInterface, AdapterView.OnItemSelectedListener {
 
+    private static String DEFAULT_USERS_SPINNER_VALUE = "Ninguno";
     GPSManager gpsManager;
     private MapView map;
     private MyLocationNewOverlay mLocationOverlay;
@@ -95,6 +95,10 @@ public class MainActivity extends AppCompatActivity
     String final_date;
     private DatePickerDialog.OnDateSetListener mDateSetListenerInitialDate;
     private DatePickerDialog.OnDateSetListener mDateSetListenerFinalDate;
+    private ArrayList<String> userNames;
+    private ArrayList<User> users;
+    private ArrayAdapter<String> usersAdapter;
+    private Integer selectedUserId;
 
     private static int DEFAULT_STATUS_CODE = -1;
     static DatabaseManager INSTANCE;
@@ -143,19 +147,17 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         getDatabase(this);
         final Spinner spinner = (Spinner) findViewById(R.id.users_spinner);
-        spinner.setOnItemSelectedListener(this);
+        userNames = new ArrayList<>();
+        users = new ArrayList<>();
+        users.add(null);
+        userNames.add(DEFAULT_USERS_SPINNER_VALUE);
         // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayList<String> users = new ArrayList<String>(){{
-            add("Boris Brejcha");
-            add("Hernan Cattaneo");
-            add("Amelie Lens");
-            add("Charlotte de witte");
-        }};
-        ArrayAdapter<String> adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, users);
+        usersAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, userNames);
         // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        usersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
-        spinner.setAdapter(adapter);
+        spinner.setAdapter(usersAdapter);
+        spinner.setOnItemSelectedListener(this);
         latitudeTextView = ((TextView)findViewById(R.id.latitude_text_view));
         longitudeTextView = ((TextView)findViewById(R.id.longitude_text_view));
         onlineTextView = ((TextView)findViewById(R.id.online_text_view));
@@ -203,7 +205,7 @@ public class MainActivity extends AppCompatActivity
         ((Button)findViewById(R.id.search_button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                fetchPointsByUser();
             }
         });
 
@@ -225,7 +227,7 @@ public class MainActivity extends AppCompatActivity
                         dialog.show();
                     }
 
-        });
+                });
 
         ((Button)findViewById(R.id.final_date_button)).
                 setOnClickListener(new View.OnClickListener() {
@@ -270,11 +272,12 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
-        initializeGPSManager();
         initializeOSM();
+        initializeGPSManager();
         initializeBroadcastManagerForSocketIO();
         initializeBroadcastManagerForHttpRequests();
         initializeOnlineNotifierService();
+        fetchUsersList();
         adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, listOfMessages);
         // --------------------------------------
     }
@@ -293,8 +296,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onItemSelected(AdapterView<?> parent, View view,
                                int pos, long id) {
-        // An item was selected. You can retrieve the selected item using
-        // parent.getItemAtPosition(pos)
+        if (users.get(pos) == null){
+            selectedUserId = null;
+        }else{
+            selectedUserId = users.get(pos).externalId;
+        }
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
@@ -314,7 +320,6 @@ public class MainActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
@@ -472,6 +477,24 @@ public class MainActivity extends AppCompatActivity
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 
+    private void fetchUsersList(){
+        Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
+        intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_USERS_INDEX);
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/users");
+        HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
+    }
+
+    private void fetchPointsByUser(){
+        if (selectedUserId == null){
+            showToast("Selecciona un usuario primero");
+        }else{
+            Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
+            intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX_BY_USER);
+            intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/points_by_user?user_id="+selectedUserId);
+            HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
+        }
+    }
+
     @Override
     public void gpsErrorHasBeenThrown(final Exception error) {
         runOnUiThread(new Runnable() {
@@ -523,8 +546,8 @@ public class MainActivity extends AppCompatActivity
                     !=PackageManager.PERMISSION_GRANTED){
                 ActivityCompat.requestPermissions(this,
                         new String[]{
-                        Manifest.permission.
-                                WRITE_EXTERNAL_STORAGE},1002);
+                                Manifest.permission.
+                                        WRITE_EXTERNAL_STORAGE},1002);
 
                 return;
             }
@@ -606,6 +629,7 @@ public class MainActivity extends AppCompatActivity
         String responseBody = intent.getStringExtra("response_body");
         switch (requestId){
             case HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX:
+            case HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX_BY_USER:
                 processPointsIndex(code, responseBody);
                 break;
             case HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION:
@@ -614,25 +638,32 @@ public class MainActivity extends AppCompatActivity
             case HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE:
                 processOnlineRequestResponse(code, responseBody);
                 break;
+            case HttpRequestsManagementService.REQUEST_ID_USERS_INDEX:
+                processUsersIndex(code, responseBody);
+                break;
         }
     };
+
+    private void drawPointsOnMap(JSONArray responsePoints) throws JSONException {
+        for (int i = 0; i<responsePoints.length(); i++){
+            JSONObject json = responsePoints.getJSONObject(i);
+            Point point = new Point();
+            point.date = getCurrentDateAsString();
+            point.latitude = json.getDouble("latitude");
+            point.longitude = json.getDouble("longitude");
+            setMarkOnMap(
+                    point,
+                    json.getString("user_name"),
+                    json.getBoolean("user_online"));
+        }
+    }
 
     private void processPointsIndex(int code, String responseBody){
         if(code == 200) {
             try {
                 map.getOverlays().clear();
                 JSONArray responsePoints = new JSONArray(responseBody);
-                for (int i = 0; i<responsePoints.length(); i++){
-                    JSONObject json = responsePoints.getJSONObject(i);
-                    Point point = new Point();
-                    point.date = getCurrentDateAsString();
-                    point.latitude = json.getDouble("latitude");
-                    point.longitude = json.getDouble("longitude");
-                    setMarkOnMap(
-                            point,
-                            json.getString("user_name"),
-                            json.getBoolean("user_online"));
-                }
+                drawPointsOnMap(responsePoints);
                 showToast(responsePoints.length()+" puntos fueron traidos exitosamente");
             } catch (JSONException e) {
                 showToast("Error al procesar los puntos");
@@ -659,6 +690,31 @@ public class MainActivity extends AppCompatActivity
             onlineTextView.setText("Online");
             onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_on, 0, 0, 0);
             uploadLocallySavedPoints();
+        }
+    }
+
+    private void processUsersIndex(int code, String responseBody){
+        if(code == 200) {
+            try {
+                userNames.clear();
+                users.clear();
+                users.add(null);
+                userNames.add(DEFAULT_USERS_SPINNER_VALUE);
+                JSONArray responseUsers = new JSONArray(responseBody);
+                for (int i = 0; i<responseUsers.length(); i++){
+                    JSONObject json = responseUsers.getJSONObject(i);
+                    User user = new User();
+                    user.externalId = json.getInt("id");
+                    user.name = json.getString("name");
+                    userNames.add(user.name);
+                    users.add(user);
+                }
+                adapter.notifyDataSetChanged();
+            } catch (JSONException e) {
+                showToast("Error al procesar los usuarios");
+            }
+        }else{
+            showToast("Error al intentar traer los usuarios");
         }
     }
 
