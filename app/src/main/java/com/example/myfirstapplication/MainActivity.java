@@ -74,12 +74,12 @@ public class MainActivity extends AppCompatActivity
     ArrayList<String> listOfMessages=new ArrayList<>();
     ArrayAdapter<String> adapter ;
     boolean serviceStarted=false;
-    boolean online=true;
+    boolean online;
     private Location currentLocation;
-    private ArrayList<Point> points;
     TextView latitudeTextView;
     TextView longitudeTextView;
     TextView onlineTextView;
+    String current_user_name;
 
     private static int DEFAULT_STATUS_CODE = -1;
     static DatabaseManager INSTANCE;
@@ -138,11 +138,11 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
-        String user=getIntent().getExtras().
-                getString("user_name");
+        current_user_name = getIntent().getStringExtra("current_user_name");
+        online = getIntent().getBooleanExtra("online", true);
         Toast.makeText(
                 this,
-                "Welcome "+user,Toast.LENGTH_SHORT).
+                "Welcome "+ current_user_name,Toast.LENGTH_SHORT).
                 show();
         ((Button)findViewById(R.id.start_service_button)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -249,8 +249,8 @@ public class MainActivity extends AppCompatActivity
         latitudeTextView.setText(latitude+"");
         longitudeTextView.setText(longitude+"");
         setMapCenter(currentLocation);
-        setMarkOnMap(latitude, longitude);
-        savePointLocally(latitude, longitude);
+        Point point = savePointLocally(latitude, longitude);
+        setMarkOnMap(point, current_user_name, online);
         if (online){
             uploadLocallySavedPoints();
         }
@@ -262,12 +262,13 @@ public class MainActivity extends AppCompatActivity
         return formatter.format(date);
     }
 
-    public void savePointLocally(double latitude, double longitude){
+    public Point savePointLocally(double latitude, double longitude){
         Point point = new Point();
         point.date = getCurrentDateAsString();
         point.latitude = latitude;
         point.longitude = longitude;
         MainActivity.INSTANCE.pointDao().insertPoint(point);
+        return point;
     }
 
     public JSONObject pointToJson(Point point){
@@ -318,25 +319,17 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    public void setMarkOnMap(double latitude, double longitude){
+    public void setMarkOnMap(Point point, String name, boolean isOnline){
         Marker marker = new Marker(map);
-        marker.setPosition(new GeoPoint(latitude, longitude));
+        marker.setPosition(new GeoPoint(point.latitude, point.longitude));
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        marker.setIcon(this.getResources().getDrawable(R.drawable.ic_menu_camera, getTheme()));
-        marker.setTitle("Hola");
-        map.getOverlays().add(marker);
-    }
-
-    private Point pointFromJson(JSONObject json){
-        Point point = new Point();
-        try {
-            point.date = json.getString("time");
-            point.latitude = Double.parseDouble(json.getString("latitude"));
-            point.longitude = Double.parseDouble(json.getString("longitude"));
-            return point;
-        } catch (JSONException e) {
-            return null;
+        if (isOnline){
+            marker.setIcon(this.getResources().getDrawable(R.drawable.ic_location_on_green, getTheme()));
+        }else{
+            marker.setIcon(this.getResources().getDrawable(R.drawable.ic_location_on_red, getTheme()));
         }
+        marker.setTitle(name+", "+point.date);
+        map.getOverlays().add(marker);
     }
 
     private void fetchPoints(){
@@ -494,19 +487,20 @@ public class MainActivity extends AppCompatActivity
     private void processPointsIndex(int code, String responseBody){
         if(code == 200) {
             try {
-                JSONArray responsePoints = new JSONArray(responseBody);
-                points = new ArrayList<>();
-                for (int i = 0; i<responsePoints.length(); i++){
-                    Point point = pointFromJson(responsePoints.getJSONObject(i));
-                    if (point != null){
-                        points.add(point);
-                    }
-                }
-                showToast(points.size()+" puntos fueron traidos exitosamente");
                 map.getOverlays().clear();
-                for(Point point : points){
-                    setMarkOnMap(point.latitude, point.longitude);
+                JSONArray responsePoints = new JSONArray(responseBody);
+                for (int i = 0; i<responsePoints.length(); i++){
+                    JSONObject json = responsePoints.getJSONObject(i);
+                    Point point = new Point();
+                    point.date = getCurrentDateAsString();
+                    point.latitude = json.getDouble("latitude");
+                    point.longitude = json.getDouble("longitude");
+                    setMarkOnMap(
+                            point,
+                            json.getString("user_name"),
+                            json.getBoolean("user_online"));
                 }
+                showToast(responsePoints.length()+" puntos fueron traidos exitosamente");
             } catch (JSONException e) {
                 showToast("Error al procesar los puntos");
             }

@@ -33,7 +33,8 @@ public class HttpRequestsManagementService extends IntentService {
     public static final String BROADCAST_TYPE_CONNECTION_ERROR = "CONNECTION_ERROR";
     public static final String BROADCAST_TYPE_REQUEST_RESPONSE = "REQUEST_RESPONSE";
     // public static final String BASE_URL = "http://192.168.0.7:3000";
-    public static final String BASE_URL = "http://192.168.43.204:3000";
+    // public static final String BASE_URL = "http://192.168.43.204:3000";
+    public static final String BASE_URL = "http://192.168.1.7:3000";
 
     String url;
     private int requestId;

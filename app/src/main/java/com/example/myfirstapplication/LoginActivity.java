@@ -15,6 +15,7 @@ import com.example.myfirstapplication.database.core.DatabaseManager;
 import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -84,22 +85,35 @@ public class LoginActivity extends Activity {
             public void onFailure(Call call, IOException e) {
                 boolean validCredentials = false;
                 String failureMessage = "Ha ocurrido un error con la conexión";
-
+                User user = null;
                 List<User> users = dbInstance.userDao().getUserByEmail(userParams.get("email"));
                 if (!users.isEmpty()){
-                    User user = users.get(0);
+                    user = users.get(0);
                     validCredentials = user.passwordHash.equals(userParams.get("password"));
                     if (!validCredentials){
                         failureMessage = "Credenciales invalidas";
                     }
                 }
 
-                processLoginAttempt(validCredentials, userParams, failureMessage);
+                if(validCredentials){
+                    processSuccessLogin(user.name, false);
+                }else{
+                    processFailureLogin(failureMessage);
+                }
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                processLoginAttempt(response.code() == 200, userParams, "Credenciales invalidas");
+                if (response.code() == 200){
+                    try {
+                        JSONObject json = new JSONObject(response.body().string());
+                        processSuccessLogin(json.getString("name"), true);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    processFailureLogin("Credenciales invalidas");
+                }
             }
         });
     }
@@ -115,20 +129,18 @@ public class LoginActivity extends Activity {
         });
     }
 
-    private void processLoginAttempt(boolean success, Map<String, String> userParams, String failureMessage){
-        if(success) {
-            showToast("Ingreso exitoso");
+    private void processSuccessLogin(String userName, boolean online){
+        showToast("Ingreso exitoso");
 
-            Intent intetToBeCalled=new
-                    Intent(getApplicationContext(),
-                    MainActivity.class);
-            intetToBeCalled.putExtra("user_name",
-                    userParams.get("email"));
-            intetToBeCalled.putExtra("user_password",
-                    userParams.get("password"));
-            startActivity(intetToBeCalled);
-        }else{
-            showToast(failureMessage);
-        }
+        Intent intetToBeCalled=new
+                Intent(getApplicationContext(),
+                MainActivity.class);
+        intetToBeCalled.putExtra("current_user_name", userName);
+        intetToBeCalled.putExtra("online", online);
+        startActivity(intetToBeCalled);
+    }
+
+    private void processFailureLogin(String message){
+        showToast(message);
     }
 }
