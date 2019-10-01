@@ -328,6 +328,13 @@ public class MainActivity extends AppCompatActivity
             startActivity(intetToBecalled);
         }
 
+        if (id == R.id.nav_chat) {
+            Intent intetToBecalled=new
+                    Intent(getApplicationContext(),
+                    ChatActivity.class);
+            startActivity(intetToBecalled);
+        }
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
