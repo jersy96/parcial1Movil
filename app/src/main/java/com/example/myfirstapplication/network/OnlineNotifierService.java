@@ -30,10 +30,15 @@ public class OnlineNotifierService extends Service {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                //Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
+                //intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE);
+                //intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.requestUrlNotifyOnline(userId));
+                //HttpRequestsManagementService.makeHttpRequest(context, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
+
                 Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
                 intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE);
                 intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.requestUrlNotifyOnline(userId));
-                HttpRequestsManagementService.makeHttpRequest(context, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
+                HttpRequestsManagementService.makeHttpRequest(context, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
             }
         }, 5, 5000);
         return START_STICKY;

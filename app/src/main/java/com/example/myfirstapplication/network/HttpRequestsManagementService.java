@@ -49,7 +49,7 @@ public class HttpRequestsManagementService extends IntentService {
     public static final String REQUEST_URL_LOGIN = "/login";
     public static final String REQUEST_URL_USER_CREATION = "/users";
     public static String requestUrlNotifyOnline(int userId){
-        return "/users/online/"+userId;
+        return "/online";
     }
     public static String requestUrlPointsIndexByUser(int userId){
         return "/points_by_user?user_id="+userId;
@@ -132,8 +132,10 @@ public class HttpRequestsManagementService extends IntentService {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 Intent intent = getIntent();
-                intent.putExtra("status_code", response.code());
-                intent.putExtra("response_body", response.body().string());
+                int code = response.code();
+                intent.putExtra("status_code", code);
+                String body = response.body().string();
+                intent.putExtra("response_body", body);
                 deliverBroadcast(BROADCAST_TYPE_REQUEST_RESPONSE, intent);
             }
         };
