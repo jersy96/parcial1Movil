@@ -74,7 +74,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GPSManagerCallerInterface , BroadcastManagerCallerInterface, AdapterView.OnItemSelectedListener {
 
-    private static String DEFAULT_USERS_SPINNER_VALUE = "Ninguno";
+    private static String DEFAULT_USERS_SPINNER_VALUE = "Todos";
     GPSManager gpsManager;
     private MapView map;
     private MyLocationNewOverlay mLocationOverlay;
@@ -209,7 +209,11 @@ public class MainActivity extends AppCompatActivity
         ((Button)findViewById(R.id.search_button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fetchPointsByUser();
+                if (selectedUserId == null){
+                    fetchPoints();
+                }else{
+                    fetchPointsByUser();
+                }
             }
         });
 
@@ -444,6 +448,7 @@ public class MainActivity extends AppCompatActivity
             intent.putExtra("jsonString", json.toString());
             HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
         }
+        fetchPoints();
     }
 
     public void showToast(final String message)
@@ -485,14 +490,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void fetchPointsByUser(){
-        if (selectedUserId == null){
-            showToast("Selecciona un usuario primero");
-        }else{
-            Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
-            intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX_BY_USER);
-            intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.requestUrlPointsIndexByUser(selectedUserId));
-            HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
-        }
+        Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
+        intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX_BY_USER);
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.requestUrlPointsIndexByUser(selectedUserId));
+        HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 
     @Override
@@ -676,8 +677,6 @@ public class MainActivity extends AppCompatActivity
     private void processPointsCreation(int code, String responseBody){
         if(code == 200) {
             MainActivity.INSTANCE.pointDao().clearPoints();
-            showToast("El punto fue subido exitosamente");
-            fetchPoints();
         }else{
             showToast("Error al intentar subir el punto");
         }
