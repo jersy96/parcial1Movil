@@ -642,7 +642,7 @@ public class MainActivity extends AppCompatActivity
                 processUsersIndex(code, responseBody);
                 break;
         }
-    };
+    }
 
     private void drawPointsOnMap(JSONArray responsePoints) throws JSONException {
         for (int i = 0; i<responsePoints.length(); i++){
