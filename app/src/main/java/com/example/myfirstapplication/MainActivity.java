@@ -414,7 +414,7 @@ public class MainActivity extends AppCompatActivity
     public JSONObject pointToJson(Point point){
         try {
             JSONObject json = new JSONObject();
-            json.put("user_id", 1);
+            json.put("user_id", currentUserId);
             json.put("latitude",point.latitude);
             json.put("longitude",point.longitude);
             json.put("time", point.date);
@@ -434,18 +434,14 @@ public class MainActivity extends AppCompatActivity
 
     public void uploadLocallySavedPoints(){
         List<Point> pointList = MainActivity.INSTANCE.pointDao().getAllPoints();
-        JSONArray jsonArray = pointsToJsonArray(pointList);
-        JSONObject json = new JSONObject();
-        try {
-            json.put("points", jsonArray);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        for(Point p : pointList){
+            JSONObject json = pointToJson(p);
+            Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
+            intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION);
+            intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_POINTS_CREATION);
+            intent.putExtra("jsonString", json.toString());
+            HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
         }
-        Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
-        intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION);
-        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_POINTS_CREATION);
-        intent.putExtra("jsonString", json.toString());
-        HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
     }
 
     public void showToast(final String message)
