@@ -157,13 +157,25 @@ public class LoginActivity extends Activity implements BroadcastManagerCallerInt
         if (code == 200){
             try {
                 JSONObject json = new JSONObject(responseBody);
-                processSuccessLogin(json.getString("name"), true);
+                processSuccessLogin(json.getString("name"), json.getInt("id"), true);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }else{
             processFailureLogin("Credenciales invalidas");
         }
+    }
+
+    private void processSuccessLogin(String userName, int userId, boolean online){
+        showToast("Ingreso exitoso");
+
+        Intent intetToBeCalled=new
+                Intent(getApplicationContext(),
+                MainActivity.class);
+        intetToBeCalled.putExtra("current_user_name", userName);
+        intetToBeCalled.putExtra("current_user_id", userId);
+        intetToBeCalled.putExtra("online", online);
+        startActivity(intetToBeCalled);
     }
 
     private void processSuccessLogin(String userName, boolean online){

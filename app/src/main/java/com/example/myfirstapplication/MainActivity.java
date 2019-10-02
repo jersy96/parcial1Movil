@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity
     TextView initialDateTextView;
     TextView finalDateTextView;
     String current_user_name;
+    int currentUserId;
     String initial_date;
     String final_date;
     private DatePickerDialog.OnDateSetListener mDateSetListenerInitialDate;
@@ -173,6 +174,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         current_user_name = getIntent().getStringExtra("current_user_name");
         online = getIntent().getBooleanExtra("online", true);
+        currentUserId = getIntent().getIntExtra("current_user_id", -1);
         Toast.makeText(
                 this,
                 "Welcome "+ current_user_name,Toast.LENGTH_SHORT).
