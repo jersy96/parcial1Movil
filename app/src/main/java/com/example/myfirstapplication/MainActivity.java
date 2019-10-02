@@ -91,6 +91,8 @@ public class MainActivity extends AppCompatActivity
     TextView initialDateTextView;
     TextView finalDateTextView;
     String current_user_name;
+    String initial_date;
+    String final_date;
     private DatePickerDialog.OnDateSetListener mDateSetListenerInitialDate;
     private DatePickerDialog.OnDateSetListener mDateSetListenerFinalDate;
 
@@ -140,7 +142,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getDatabase(this);
-        Spinner spinner = (Spinner) findViewById(R.id.users_spinner);
+        final Spinner spinner = (Spinner) findViewById(R.id.users_spinner);
         spinner.setOnItemSelectedListener(this);
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayList<String> users = new ArrayList<String>(){{
@@ -190,7 +192,11 @@ public class MainActivity extends AppCompatActivity
         ((Button)findViewById(R.id.clear_filter_button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                spinner.setSelection(0);
+                initial_date = null;
+                initialDateTextView.setText("Initial date:");
+                final_date = null;
+                finalDateTextView.setText("Final date:");
             }
         });
 
@@ -247,6 +253,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
 
                 String date = month + "/" + day + "/" + year;
+                initial_date = date;
                 initialDateTextView.setText(date);
             }
         };
@@ -258,6 +265,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
 
                 String date = month + "/" + day + "/" + year;
+                final_date = date;
                 finalDateTextView.setText(date);
             }
         };
