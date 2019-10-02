@@ -76,7 +76,7 @@ public class LoginActivity extends Activity implements BroadcastManagerCallerInt
 
         Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_LOGIN);
-        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/login");
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_LOGIN);
         intent.putExtra("jsonString", userBody.toString());
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
     }

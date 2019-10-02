@@ -28,7 +28,7 @@ public class OnlineNotifierService extends Service {
             public void run() {
                 Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
                 intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE);
-                intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/online");
+                intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_NOTIFY_ONLINE);
                 HttpRequestsManagementService.makeHttpRequest(context, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
             }
         }, 5, 5000);

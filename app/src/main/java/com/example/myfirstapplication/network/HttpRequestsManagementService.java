@@ -24,12 +24,18 @@ import okhttp3.Response;
 public class HttpRequestsManagementService extends IntentService {
     public static final int DEFAULT_REQUEST_ID = 0;
     public static final int REQUEST_ID_POINTS_INDEX = 1;
+    public static final String REQUEST_URL_POINTS_INDEX = "/points";
     public static final int REQUEST_ID_POINTS_CREATION = 2;
+    public static final String REQUEST_URL_POINTS_CREATION = "/points";
     public static final int REQUEST_ID_NOTIFY_ONLINE = 3;
+    public static final String REQUEST_URL_NOTIFY_ONLINE = "/online";
     public static final int REQUEST_ID_USERS_INDEX = 4;
+    public static final String REQUEST_URL_USERS_INDEX = "/users";
     public static final int REQUEST_ID_POINTS_INDEX_BY_USER = 5;
     public static final int REQUEST_ID_LOGIN = 6;
+    public static final String REQUEST_URL_LOGIN = "/login";
     public static final int REQUEST_ID_USER_CREATION = 7;
+    public static final String REQUEST_URL_USER_CREATION = "/users";
     public static final String ACTION_INIT_HTTP_REQUEST_MANAGER = "com.example.myfirstapplication.network.action.ACTION_INIT_HTTP_REQUEST_MANAGER";
     public static final String CHANNEL_HTTP_REQUESTS_SERVICE = "com.example.myfirstapplication.HTTP_REQUESTS_SERVICE_CHANNEL";
     public static final String MESSAGE_TYPE_POST_REQUEST = "POST_REQUEST";
@@ -42,6 +48,10 @@ public class HttpRequestsManagementService extends IntentService {
 
     String url;
     private int requestId;
+
+    public static String requestUrlPointsIndexByUser(int userId){
+        return "/points_by_user?user_id="+userId;
+    }
 
     public static Intent createIntentForHttpRequest(Context context){
         return new Intent(context, HttpRequestsManagementService.class);

@@ -16,22 +16,11 @@ import com.example.myfirstapplication.broadcast.BroadcastManagerCallerInterface;
 import com.example.myfirstapplication.database.core.DatabaseManager;
 import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
-import com.example.myfirstapplication.network.OnlineNotifierService;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 public class SignUpActivity extends AppCompatActivity implements BroadcastManagerCallerInterface {
     private DatabaseManager dbInstance;
@@ -75,32 +64,11 @@ public class SignUpActivity extends AppCompatActivity implements BroadcastManage
         }
 
         JSONObject userBody= new JSONObject(userParams);
-        OkHttpClient client = new OkHttpClient();
-        MediaType mediaType = MediaType.parse("application/json");
-        RequestBody body = RequestBody.create(mediaType, userBody.toString());
-        Request request = new Request.Builder()
-                .url(HttpRequestsManagementService.BASE_URL+"/users")
-                .post(body)
-                .build();
-
         Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_USER_CREATION);
-        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/users");
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_USER_CREATION);
         intent.putExtra("jsonString", userBody.toString());
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                showToast("Ha ocurrido un error con la conexión");
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-
-
-            }
-        });
     }
 
     public void showToast(final String message)

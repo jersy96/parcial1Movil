@@ -443,7 +443,7 @@ public class MainActivity extends AppCompatActivity
         }
         Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_CREATION);
-        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/points");
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_POINTS_CREATION);
         intent.putExtra("jsonString", json.toString());
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
     }
@@ -475,14 +475,14 @@ public class MainActivity extends AppCompatActivity
     private void fetchPoints(){
         Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX);
-        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/points");
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_POINTS_INDEX);
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 
     private void fetchUsersList(){
         Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
         intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_USERS_INDEX);
-        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/users");
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_USERS_INDEX);
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 
@@ -492,7 +492,7 @@ public class MainActivity extends AppCompatActivity
         }else{
             Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
             intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_INDEX_BY_USER);
-            intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/points_by_user?user_id="+selectedUserId);
+            intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.requestUrlPointsIndexByUser(selectedUserId));
             HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
         }
     }
