@@ -180,4 +180,12 @@ public class LoginActivity extends Activity implements BroadcastManagerCallerInt
     private void processFailureLogin(String message){
         showToast(message);
     }
+
+    @Override
+    protected void onDestroy() {
+        if(broadcastManagerForHttpRequests!=null){
+            broadcastManagerForHttpRequests.unRegister();
+        }
+        super.onDestroy();
+    }
 }
