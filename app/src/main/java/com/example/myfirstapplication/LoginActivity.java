@@ -117,7 +117,7 @@ public class LoginActivity extends Activity implements BroadcastManagerCallerInt
             }
 
             if(validCredentials){
-                processSuccessLogin(user.name, false);
+                processSuccessLogin(user.name, user.externalId, false);
             }else{
                 processFailureLogin(failureMessage);
             }
@@ -174,17 +174,6 @@ public class LoginActivity extends Activity implements BroadcastManagerCallerInt
                 MainActivity.class);
         intetToBeCalled.putExtra("current_user_name", userName);
         intetToBeCalled.putExtra("current_user_id", userId);
-        intetToBeCalled.putExtra("online", online);
-        startActivity(intetToBeCalled);
-    }
-
-    private void processSuccessLogin(String userName, boolean online){
-        showToast("Ingreso exitoso");
-
-        Intent intetToBeCalled=new
-                Intent(getApplicationContext(),
-                MainActivity.class);
-        intetToBeCalled.putExtra("current_user_name", userName);
         intetToBeCalled.putExtra("online", online);
         startActivity(intetToBeCalled);
     }

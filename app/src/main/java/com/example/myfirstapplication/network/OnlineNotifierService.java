@@ -5,11 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 
+import com.example.myfirstapplication.MainActivity;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class OnlineNotifierService extends Service {
     Timer timer;
+    int userId;
 
     public OnlineNotifierService() {
     }
@@ -22,14 +25,15 @@ public class OnlineNotifierService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         timer = new Timer();
+        userId = intent.getIntExtra("current_user_id", MainActivity.DEFAULT_STATUS_CODE);
         final Context context = this;
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
                 intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_NOTIFY_ONLINE);
-                intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.REQUEST_URL_NOTIFY_ONLINE);
-                HttpRequestsManagementService.makeHttpRequest(context, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
+                intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.requestUrlNotifyOnline(userId));
+                HttpRequestsManagementService.makeHttpRequest(context, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
             }
         }, 5, 5000);
         return START_STICKY;

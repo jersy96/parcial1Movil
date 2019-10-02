@@ -17,6 +17,7 @@ import com.example.myfirstapplication.database.core.DatabaseManager;
 import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -123,18 +124,22 @@ public class SignUpActivity extends AppCompatActivity implements BroadcastManage
     private void processSignup(int code, String responseBody){
         if(code == 200) {
             showToast("Usuario creado con éxito, ingrese con su correo y contraseña");
+            try {
+                JSONObject json = new JSONObject(responseBody);
+                User user = new User();
+                user.name = userParams.get("name");
+                user.email = userParams.get("email");
+                user.passwordHash = userParams.get("password");
+                user.externalId = json.getInt("id");
+                dbInstance.userDao().insertUser(user);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
-            User user = new User();
-            user.name = userParams.get("name");
-            user.email = userParams.get("email");
-            user.passwordHash = userParams.get("password");
-
-            dbInstance.userDao().insertUser(user);
-
-            Intent intetToBecalled=new
+            Intent intentToBeCalled=new
                     Intent(getApplicationContext(),
                     LoginActivity.class);
-            startActivity(intetToBecalled);
+            startActivity(intentToBeCalled);
         }else{
             showToast("Ha ocurrido un error al crear nuevo usuario");
         }

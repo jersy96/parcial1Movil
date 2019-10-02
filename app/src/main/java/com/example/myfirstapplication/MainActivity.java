@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayAdapter<String> usersAdapter;
     private Integer selectedUserId;
 
-    private static int DEFAULT_STATUS_CODE = -1;
+    public static int DEFAULT_STATUS_CODE = -1;
     static DatabaseManager INSTANCE;
 
     static DatabaseManager getDatabase(final Context context) {
@@ -137,7 +137,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initializeOnlineNotifierService(){
-        startService(new Intent(this, OnlineNotifierService.class));
+        Intent intent = new Intent(this, OnlineNotifierService.class);
+        intent.putExtra("current_user_id", currentUserId);
+        startService(intent);
     }
 
     @Override
@@ -174,7 +176,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         current_user_name = getIntent().getStringExtra("current_user_name");
         online = getIntent().getBooleanExtra("online", true);
-        currentUserId = getIntent().getIntExtra("current_user_id", -1);
+        currentUserId = getIntent().getIntExtra("current_user_id", DEFAULT_STATUS_CODE);
         Toast.makeText(
                 this,
                 "Welcome "+ current_user_name,Toast.LENGTH_SHORT).
@@ -617,7 +619,7 @@ public class MainActivity extends AppCompatActivity
             onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_off, 0, 0, 0);
             this.online = false;
         }else{
-            showToast(intent.getStringExtra("message"));
+            showToast(intent.getStringExtra(requestId+", "+"message"));
         }
     }
 
@@ -683,7 +685,7 @@ public class MainActivity extends AppCompatActivity
 
     private void processOnlineRequestResponse(int code, String responseBody){
         boolean previousOnlineValue = online;
-        this.online = code == 200;
+        this.online = true;
         if(online && !previousOnlineValue){
             onlineTextView.setText("Online");
             onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_on, 0, 0, 0);
