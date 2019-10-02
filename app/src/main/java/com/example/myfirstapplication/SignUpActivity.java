@@ -11,14 +11,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.myfirstapplication.broadcast.BroadcastManager;
+import com.example.myfirstapplication.broadcast.BroadcastManagerCallerInterface;
 import com.example.myfirstapplication.database.core.DatabaseManager;
 import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
+import com.example.myfirstapplication.network.OnlineNotifierService;
 
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.Call;
@@ -29,8 +33,16 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class SignUpActivity extends AppCompatActivity {
+public class SignUpActivity extends AppCompatActivity implements BroadcastManagerCallerInterface {
     private DatabaseManager dbInstance;
+    BroadcastManager broadcastManagerForHttpRequests;
+    Map<String, String> userParams;
+
+    private void initializeBroadcastManagerForHttpRequests(){
+        broadcastManagerForHttpRequests=new BroadcastManager(this,
+                HttpRequestsManagementService.
+                        CHANNEL_HTTP_REQUESTS_SERVICE,this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,18 +56,18 @@ public class SignUpActivity extends AppCompatActivity {
                 final String nameString= ((EditText)findViewById(R.id.register_name)).getText().toString();
                 final String emailString = ((EditText) findViewById(R.id.register_email)).getText().toString();
                 final String passwordString = ((EditText) findViewById(R.id.register_password)).getText().toString();
-                Map<String, String> newUserParams = new HashMap<>();
-                newUserParams.put("name", nameString);
-                newUserParams.put("email", emailString);
-                newUserParams.put("password", passwordString);
-                createUser(newUserParams);
-
+                userParams = new HashMap<>();
+                userParams.put("name", nameString);
+                userParams.put("email", emailString);
+                userParams.put("password", passwordString);
+                createUser();
                 // Code here executes on main thread after user presses button
             }
         });
+        initializeBroadcastManagerForHttpRequests();
     }
 
-    public void createUser(final Map<String, String> userParams){
+    public void createUser(){
         View view = this.getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -71,6 +83,12 @@ public class SignUpActivity extends AppCompatActivity {
                 .post(body)
                 .build();
 
+        Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
+        intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_USER_CREATION);
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+"/users");
+        intent.putExtra("jsonString", userBody.toString());
+        HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_POST_REQUEST, intent);
+
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -80,23 +98,7 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
 
-                if(response.code() == 200) {
-                    showToast("Usuario creado con éxito, ingrese con su correo y contraseña");
 
-                    User user = new User();
-                    user.name = userParams.get("name");
-                    user.email = userParams.get("email");
-                    user.passwordHash = userParams.get("password");
-
-                    dbInstance.userDao().insertUser(user);
-
-                    Intent intetToBecalled=new
-                            Intent(getApplicationContext(),
-                            LoginActivity.class);
-                    startActivity(intetToBecalled);
-                }else{
-                    showToast("Ha ocurrido un error al crear nuevo usuario");
-                }
             }
         });
     }
@@ -112,4 +114,74 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void MessageReceivedThroughBroadcastManager(String channel, Intent intent) {
+        switch (channel){
+            case HttpRequestsManagementService.CHANNEL_HTTP_REQUESTS_SERVICE:
+                processHttpRequestsServiceMessage(intent);
+                break;
+        }
+    }
+
+    private void processHttpRequestsServiceMessage(Intent intent){
+        switch(intent.getStringExtra("type")){
+            case HttpRequestsManagementService.BROADCAST_TYPE_CONNECTION_ERROR:
+                processHttpRequestConnectionError(intent);
+                break;
+            case HttpRequestsManagementService.BROADCAST_TYPE_REQUEST_RESPONSE:
+                processHttpRequestRequestResponse(intent);
+                break;
+        }
+    }
+
+    private void processHttpRequestConnectionError(Intent intent){
+        int requestId = intent.getIntExtra("requestId", HttpRequestsManagementService.DEFAULT_REQUEST_ID);
+        if (requestId == HttpRequestsManagementService.REQUEST_ID_USER_CREATION){
+            showToast(intent.getStringExtra("message"));
+        }
+    }
+
+    private void processHttpRequestRequestResponse(Intent intent){
+        int requestId = intent.getIntExtra("requestId", HttpRequestsManagementService.DEFAULT_REQUEST_ID);
+        int code = intent.getIntExtra("status_code", -1);
+        String responseBody = intent.getStringExtra("response_body");
+        switch (requestId){
+            case HttpRequestsManagementService.REQUEST_ID_USER_CREATION:
+                processSignup(code, responseBody);
+                break;
+        }
+    }
+
+    private void processSignup(int code, String responseBody){
+        if(code == 200) {
+            showToast("Usuario creado con éxito, ingrese con su correo y contraseña");
+
+            User user = new User();
+            user.name = userParams.get("name");
+            user.email = userParams.get("email");
+            user.passwordHash = userParams.get("password");
+
+            dbInstance.userDao().insertUser(user);
+
+            Intent intetToBecalled=new
+                    Intent(getApplicationContext(),
+                    LoginActivity.class);
+            startActivity(intetToBecalled);
+        }else{
+            showToast("Ha ocurrido un error al crear nuevo usuario");
+        }
+    }
+
+    @Override
+    public void ErrorAtBroadcastManager(Exception error) {
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(broadcastManagerForHttpRequests!=null){
+            broadcastManagerForHttpRequests.unRegister();
+        }
+        super.onDestroy();
+    }
 }

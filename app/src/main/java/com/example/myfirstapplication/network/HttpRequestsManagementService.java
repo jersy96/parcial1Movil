@@ -29,6 +29,7 @@ public class HttpRequestsManagementService extends IntentService {
     public static final int REQUEST_ID_USERS_INDEX = 4;
     public static final int REQUEST_ID_POINTS_INDEX_BY_USER = 5;
     public static final int REQUEST_ID_LOGIN = 6;
+    public static final int REQUEST_ID_USER_CREATION = 7;
     public static final String ACTION_INIT_HTTP_REQUEST_MANAGER = "com.example.myfirstapplication.network.action.ACTION_INIT_HTTP_REQUEST_MANAGER";
     public static final String CHANNEL_HTTP_REQUESTS_SERVICE = "com.example.myfirstapplication.HTTP_REQUESTS_SERVICE_CHANNEL";
     public static final String MESSAGE_TYPE_POST_REQUEST = "POST_REQUEST";

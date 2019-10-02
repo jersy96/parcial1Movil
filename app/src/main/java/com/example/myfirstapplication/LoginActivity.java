@@ -16,12 +16,10 @@ import com.example.myfirstapplication.broadcast.BroadcastManagerCallerInterface;
 import com.example.myfirstapplication.database.core.DatabaseManager;
 import com.example.myfirstapplication.database.entities.User;
 import com.example.myfirstapplication.network.HttpRequestsManagementService;
-import com.example.myfirstapplication.network.SocketManagementService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
