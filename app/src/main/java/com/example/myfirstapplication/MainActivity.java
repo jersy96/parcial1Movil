@@ -229,14 +229,19 @@ public class MainActivity extends AppCompatActivity
         dialogView.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 DatePicker datePicker = (DatePicker) dialogView.findViewById(R.id.date_picker);
                 TimePicker timePicker = (TimePicker) dialogView.findViewById(R.id.time_picker);
                 int year = datePicker.getYear();
                 int month = datePicker.getMonth();
                 int day = datePicker.getDayOfMonth();
-                int hour = timePicker.getHour();
-                int minute = timePicker.getMinute();
+                String hour = "" + timePicker.getHour();
+                if (hour.length() == 1) {
+                    hour = "0" + hour;
+                }
+                String minute = "" + timePicker.getMinute();
+                if (minute.length() == 1) {
+                    minute = "0" + minute;
+                }
                 String date = month + "/" + day + "/" + year +  " " + hour + ":" + minute;
                 initial_date = date;
                 initialDateTextView.setText(date);
@@ -253,8 +258,14 @@ public class MainActivity extends AppCompatActivity
                 int year = datePicker.getYear();
                 int month = datePicker.getMonth();
                 int day = datePicker.getDayOfMonth();
-                int hour = timePicker.getHour();
-                int minute = timePicker.getMinute();
+                String hour = "" + timePicker.getHour();
+                if (hour.length() == 1) {
+                    hour = "0" + hour;
+                }
+                String minute = "" + timePicker.getMinute();
+                if (minute.length() == 1) {
+                    minute = "0" + minute;
+                }
                 String date = month + "/" + day + "/" + year +  " " + hour + ":" + minute;
                 final_date = date;
                 finalDateTextView.setText(date);
@@ -289,7 +300,7 @@ public class MainActivity extends AppCompatActivity
         initializeBroadcastManagerForSocketIO();
         initializeBroadcastManagerForHttpRequests();
         initializeOnlineNotifierService();
-        fetchUsersList();
+        //fetchUsersList();
         adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, listOfMessages);
         // --------------------------------------
     }
