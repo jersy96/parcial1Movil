@@ -65,6 +65,7 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -209,10 +210,14 @@ public class MainActivity extends AppCompatActivity
         ((Button)findViewById(R.id.search_button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (selectedUserId == null){
+                if(selectedUserId == null){
                     fetchPoints();
                 }else{
-                    fetchPointsByUser();
+                    if (initial_date != null && final_date != null){
+                        fetchPointsBetweenDates(initial_date, final_date);
+                    }else{
+                        fetchPointsByUser();
+                    }
                 }
             }
         });
@@ -262,7 +267,7 @@ public class MainActivity extends AppCompatActivity
                 month = month + 1;
                 Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
 
-                String date = month + "/" + day + "/" + year;
+                String date = year + "-" + month + "-" + day;
                 initial_date = date;
                 initialDateTextView.setText(date);
             }
@@ -274,7 +279,7 @@ public class MainActivity extends AppCompatActivity
                 month = month + 1;
                 Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
 
-                String date = month + "/" + day + "/" + year;
+                String date = year + "-" + month + "-" + day;
                 final_date = date;
                 finalDateTextView.setText(date);
             }
@@ -500,6 +505,13 @@ public class MainActivity extends AppCompatActivity
         HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
     }
 
+    private void fetchPointsBetweenDates(String initialDate, String finalDate){
+        Intent intent = HttpRequestsManagementService.createIntentForHttpRequest(getApplicationContext());
+        intent.putExtra("requestId", HttpRequestsManagementService.REQUEST_ID_POINTS_BETWEEN_DATES);
+        intent.putExtra("url", HttpRequestsManagementService.BASE_URL+HttpRequestsManagementService.requestUrlPointsBetweenDates(selectedUserId, initialDate, finalDate));
+        HttpRequestsManagementService.makeHttpRequest(this, HttpRequestsManagementService.MESSAGE_TYPE_GET_REQUEST, intent);
+    }
+
     @Override
     public void gpsErrorHasBeenThrown(final Exception error) {
         runOnUiThread(new Runnable() {
@@ -646,16 +658,63 @@ public class MainActivity extends AppCompatActivity
             case HttpRequestsManagementService.REQUEST_ID_USERS_INDEX:
                 processUsersIndex(code, responseBody);
                 break;
+            case HttpRequestsManagementService.REQUEST_ID_POINTS_BETWEEN_DATES:
+                processPointsIndexBetweenDates(code, responseBody);
+                break;
         }
     }
 
+    private static double distance(double lat1, double lat2, double lon1,
+                                  double lon2) {
+
+        final int R = 6371; // Radius of the earth
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c * 1000; // convert to meters
+
+        double height = 0;
+
+        distance = Math.pow(distance, 2) + Math.pow(height, 2);
+
+        return Math.sqrt(distance);
+    }
+
+    private void processPointsIndexBetweenDates(int code, String responseBody){
+        processPointsIndex(code, responseBody);
+        double distAcum = 0;
+        long timeAcum = 0;
+        for(int i=1; i<points.size();i++){
+            Point p1 = points.get(i-1);
+            Point p2 = points.get(i);
+            double dist = distance(p1.latitude, p2.latitude, p1.longitude, p2.longitude);
+            distAcum += dist;
+            Timestamp t1 = Timestamp.valueOf(p1.date);
+            Timestamp t2 = Timestamp.valueOf(p2.date);
+            long timeDelta = t2.getTime() - t1.getTime();
+            timeAcum += timeDelta / 1000;
+        }
+        double velocity = distAcum / timeAcum;
+        latitudeTextView.setText(velocity+" mm/s");
+        distAcum = distAcum * 1000;
+        longitudeTextView.setText(distAcum+" Km");
+    }
+
+    private ArrayList<Point> points;
+
     private void drawPointsOnMap(JSONArray responsePoints) throws JSONException {
+        points = new ArrayList<>();
         for (int i = 0; i<responsePoints.length(); i++){
             JSONObject json = responsePoints.getJSONObject(i);
             Point point = new Point();
             point.date = getCurrentDateAsString();
             point.latitude = json.getDouble("latitude");
             point.longitude = json.getDouble("longitude");
+            points.add(point);
             setMarkOnMap(
                     point,
                     json.getString("user_name"),
