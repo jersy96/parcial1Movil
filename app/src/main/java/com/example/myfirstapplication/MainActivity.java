@@ -51,6 +51,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -69,11 +70,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GPSManagerCallerInterface , BroadcastManagerCallerInterface, AdapterView.OnItemSelectedListener {
 
+    private View dialogView;
+    private AlertDialog alertDialog;
+    private View dialogView2;
+    private Context applicationContext;
+    private AlertDialog alertDialog2;
     private static String DEFAULT_USERS_SPINNER_VALUE = "Ninguno";
     GPSManager gpsManager;
     private MapView map;
@@ -90,12 +97,12 @@ public class MainActivity extends AppCompatActivity
     TextView onlineTextView;
     TextView initialDateTextView;
     TextView finalDateTextView;
+    TextView distanceTextView;
+    TextView velocityTextView;
     String current_user_name;
     int currentUserId;
     String initial_date;
     String final_date;
-    private DatePickerDialog.OnDateSetListener mDateSetListenerInitialDate;
-    private DatePickerDialog.OnDateSetListener mDateSetListenerFinalDate;
     private ArrayList<String> userNames;
     private ArrayList<User> users;
     private ArrayAdapter<String> usersAdapter;
@@ -177,6 +184,7 @@ public class MainActivity extends AppCompatActivity
         current_user_name = getIntent().getStringExtra("current_user_name");
         online = getIntent().getBooleanExtra("online", true);
         currentUserId = getIntent().getIntExtra("current_user_id", DEFAULT_STATUS_CODE);
+
         Toast.makeText(
                 this,
                 "Welcome "+ current_user_name,Toast.LENGTH_SHORT).
@@ -209,26 +217,58 @@ public class MainActivity extends AppCompatActivity
         ((Button)findViewById(R.id.search_button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fetchPointsByUser();
+                showToast("Final date:" +final_date + " initial dATE:" + initial_date);
+
+                //fetchPointsByUser();
             }
         });
+        alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog2 = new AlertDialog.Builder(this).create();
+        dialogView = View.inflate(this, R.layout.date_time_picker, null);
+        applicationContext = this;
+        dialogView.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                DatePicker datePicker = (DatePicker) dialogView.findViewById(R.id.date_picker);
+                TimePicker timePicker = (TimePicker) dialogView.findViewById(R.id.time_picker);
+                int year = datePicker.getYear();
+                int month = datePicker.getMonth();
+                int day = datePicker.getDayOfMonth();
+                int hour = timePicker.getHour();
+                int minute = timePicker.getMinute();
+                String date = month + "/" + day + "/" + year +  " " + hour + ":" + minute;
+                initial_date = date;
+                initialDateTextView.setText(date);
+                alertDialog.dismiss();
+            }});
+        dialogView2 = View.inflate(this, R.layout.date_time_picker, null);
+
+        dialogView2.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                DatePicker datePicker = (DatePicker) dialogView2.findViewById(R.id.date_picker);
+                TimePicker timePicker = (TimePicker) dialogView2.findViewById(R.id.time_picker);
+                int year = datePicker.getYear();
+                int month = datePicker.getMonth();
+                int day = datePicker.getDayOfMonth();
+                int hour = timePicker.getHour();
+                int minute = timePicker.getMinute();
+                String date = month + "/" + day + "/" + year +  " " + hour + ":" + minute;
+                final_date = date;
+                finalDateTextView.setText(date);
+                alertDialog2.dismiss();
+            }});
 
         ((Button)findViewById(R.id.initial_date_button)).
                 setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Calendar cal = Calendar.getInstance();
-                        int year = cal.get(Calendar.YEAR);
-                        int month = cal.get(Calendar.MONTH);
-                        int day = cal.get(Calendar.DAY_OF_MONTH);
 
-                        DatePickerDialog dialog = new DatePickerDialog(
-                                MainActivity.this,
-                                android.R.style.Theme_Holo_Light_Dialog_MinWidth,
-                                mDateSetListenerInitialDate,
-                                year,month,day);
-                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                        dialog.show();
+
+                        alertDialog.setView(dialogView);
+                        alertDialog.show();
                     }
 
                 });
@@ -237,44 +277,12 @@ public class MainActivity extends AppCompatActivity
                 setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Calendar cal = Calendar.getInstance();
-                        int year = cal.get(Calendar.YEAR);
-                        int month = cal.get(Calendar.MONTH);
-                        int day = cal.get(Calendar.DAY_OF_MONTH);
 
-                        DatePickerDialog dialog = new DatePickerDialog(
-                                MainActivity.this,
-                                android.R.style.Theme_Holo_Light_Dialog_MinWidth,
-                                mDateSetListenerFinalDate,
-                                year,month,day);
-                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                        dialog.show();
+                        //dialogView2 = View.inflate(getApplicationContext(), R.layout.date_time_picker, null);
+                        alertDialog2.setView(dialogView2);
+                        alertDialog2.show();
                     }
                 });
-
-        mDateSetListenerInitialDate = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                month = month + 1;
-                Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
-
-                String date = month + "/" + day + "/" + year;
-                initial_date = date;
-                initialDateTextView.setText(date);
-            }
-        };
-
-        mDateSetListenerFinalDate = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                month = month + 1;
-                Log.d("wtffffffff", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
-
-                String date = month + "/" + day + "/" + year;
-                final_date = date;
-                finalDateTextView.setText(date);
-            }
-        };
 
         initializeOSM();
         initializeGPSManager();
