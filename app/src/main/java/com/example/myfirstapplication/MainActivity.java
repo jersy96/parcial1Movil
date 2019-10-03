@@ -51,6 +51,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -101,6 +102,12 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<User> users;
     private ArrayAdapter<String> usersAdapter;
     private Integer selectedUserId;
+    private View dialogView;
+    private AlertDialog alertDialog;
+    private View dialogView2;
+    private AlertDialog alertDialog2;
+    TextView distanceTextView;
+    TextView velocityTextView;
 
     public static int DEFAULT_STATUS_CODE = -1;
     static DatabaseManager INSTANCE;
@@ -163,6 +170,8 @@ public class MainActivity extends AppCompatActivity
         spinner.setAdapter(usersAdapter);
         spinner.setOnItemSelectedListener(this);
         latitudeTextView = ((TextView)findViewById(R.id.latitude_text_view));
+        velocityTextView = ((TextView)findViewById(R.id.velocity_text_view));
+        distanceTextView = ((TextView)findViewById(R.id.distance_text_view));
         longitudeTextView = ((TextView)findViewById(R.id.longitude_text_view));
         onlineTextView = ((TextView)findViewById(R.id.online_text_view));
         onlineTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_switch_on, 0, 0, 0);
@@ -226,18 +235,10 @@ public class MainActivity extends AppCompatActivity
                 setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Calendar cal = Calendar.getInstance();
-                        int year = cal.get(Calendar.YEAR);
-                        int month = cal.get(Calendar.MONTH);
-                        int day = cal.get(Calendar.DAY_OF_MONTH);
 
-                        DatePickerDialog dialog = new DatePickerDialog(
-                                MainActivity.this,
-                                android.R.style.Theme_Holo_Light_Dialog_MinWidth,
-                                mDateSetListenerInitialDate,
-                                year,month,day);
-                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                        dialog.show();
+
+                        alertDialog.setView(dialogView);
+                        alertDialog.show();
                     }
 
                 });
@@ -246,18 +247,10 @@ public class MainActivity extends AppCompatActivity
                 setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Calendar cal = Calendar.getInstance();
-                        int year = cal.get(Calendar.YEAR);
-                        int month = cal.get(Calendar.MONTH);
-                        int day = cal.get(Calendar.DAY_OF_MONTH);
 
-                        DatePickerDialog dialog = new DatePickerDialog(
-                                MainActivity.this,
-                                android.R.style.Theme_Holo_Light_Dialog_MinWidth,
-                                mDateSetListenerFinalDate,
-                                year,month,day);
-                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                        dialog.show();
+                        //dialogView2 = View.inflate(getApplicationContext(), R.layout.date_time_picker, null);
+                        alertDialog2.setView(dialogView2);
+                        alertDialog2.show();
                     }
                 });
 
@@ -284,6 +277,55 @@ public class MainActivity extends AppCompatActivity
                 finalDateTextView.setText(date);
             }
         };
+
+        alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog2 = new AlertDialog.Builder(this).create();
+        dialogView = View.inflate(this, R.layout.date_time_picker, null);
+        dialogView.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DatePicker datePicker = (DatePicker) dialogView.findViewById(R.id.date_picker);
+                TimePicker timePicker = (TimePicker) dialogView.findViewById(R.id.time_picker);
+                int year = datePicker.getYear();
+                int month = datePicker.getMonth();
+                int day = datePicker.getDayOfMonth();
+                String hour = "" + timePicker.getHour();
+                if (hour.length() == 1) {
+                    hour = "0" + hour;
+                }
+                String minute = "" + timePicker.getMinute();
+                if (minute.length() == 1) {
+                    minute = "0" + minute;
+                }
+                String date = month + "/" + day + "/" + year +  " " + hour + ":" + minute;
+                initial_date = date;
+                initialDateTextView.setText(date);
+                alertDialog.dismiss();
+            }});
+        dialogView2 = View.inflate(this, R.layout.date_time_picker, null);
+
+        dialogView2.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                DatePicker datePicker = (DatePicker) dialogView2.findViewById(R.id.date_picker);
+                TimePicker timePicker = (TimePicker) dialogView2.findViewById(R.id.time_picker);
+                int year = datePicker.getYear();
+                int month = datePicker.getMonth();
+                int day = datePicker.getDayOfMonth();
+                String hour = "" + timePicker.getHour();
+                if (hour.length() == 1) {
+                    hour = "0" + hour;
+                }
+                String minute = "" + timePicker.getMinute();
+                if (minute.length() == 1) {
+                    minute = "0" + minute;
+                }
+                String date = month + "/" + day + "/" + year +  " " + hour + ":" + minute;
+                final_date = date;
+                finalDateTextView.setText(date);
+                alertDialog2.dismiss();
+            }});
 
         initializeOSM();
         initializeGPSManager();
@@ -699,9 +741,9 @@ public class MainActivity extends AppCompatActivity
             timeAcum += timeDelta / 1000;
         }
         double velocity = distAcum / timeAcum;
-        latitudeTextView.setText(velocity+" mm/s");
+        velocityTextView.setText(velocity+" mm/s");
         distAcum = distAcum * 1000;
-        longitudeTextView.setText(distAcum+" Km");
+        distanceTextView.setText(distAcum+" Km");
     }
 
     private ArrayList<Point> points;
